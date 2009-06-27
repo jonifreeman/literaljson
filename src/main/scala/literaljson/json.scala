@@ -1,6 +1,6 @@
 package literaljson
 
-object Json {
+object JsonAST {
   sealed abstract class JValue
   case object JNull extends JValue
   case class JString(s: String) extends JValue
@@ -41,8 +41,8 @@ object Json {
   private def text(s: String) = if (s == "") Empty else Text(s)
 }
 
-object JsonDSL {
-  import Json._
+object JsonDSL extends Printer {
+  import JsonAST._
 
   implicit def int2jvalue(x: Int) = JInt(x)
   implicit def long2jvalue(x: Long) = JInt(x)
@@ -79,8 +79,8 @@ object JsonDSL {
 }
 
 
-object Printer {
-  import Json._
+trait Printer {
+  import JsonAST._
 
   def compact(d: Doc) = {
     def layout(doc: Doc): String = doc match {
