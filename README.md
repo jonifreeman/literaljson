@@ -71,7 +71,7 @@ Example produces following pretty printed JSON:
             "winner-id": 54,
             "card": [52, 3, 12, 11, 18, 22] 
           } 
-        ],
+        ]
       }
     }
 
@@ -80,6 +80,7 @@ TODO + ideas
 
 * Support for Options.
 * String escaping.
+* Pretty printing.
 * Add parser which parses to AST.
 
 Kudos
