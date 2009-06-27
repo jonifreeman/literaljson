@@ -10,7 +10,6 @@ object JsonAST {
   case class JObject(obj: List[(String, JValue)]) extends JValue
   case class JArray(arr: List[JValue]) extends JValue
 
-  // FIXME move
   sealed abstract class Doc {
     def <>(other: Doc) = Cons(this, other)
   }
@@ -73,8 +72,8 @@ object JsonDSL extends Printer {
   }
 
   class JsonListAssoc(left: List[(String, JValue)]) {
-    def ~(right: (String, JValue)) = JObject(right :: left)
-    def ~(right: JObject) = JObject(right.obj ::: left)
+    def ~(right: (String, JValue)) = JObject(left ::: List(right))
+    def ~(right: JObject) = JObject(left ::: right.obj)
   }
 }
 
