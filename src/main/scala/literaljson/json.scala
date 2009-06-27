@@ -4,7 +4,8 @@ object Json {
   sealed abstract class JValue
   case object JNull extends JValue
   case class JString(s: String) extends JValue
-  case class JNumber(num: Double) extends JValue
+  case class JDouble(num: BigDecimal) extends JValue
+  case class JInt(num: BigInt) extends JValue
   case class JBool(value: Boolean) extends JValue
   case class JObject(obj: List[(String, JValue)]) extends JValue
   case class JArray(arr: List[JValue]) extends JValue
@@ -21,7 +22,8 @@ object Json {
   def render(value: JValue): Doc = value match {
     case JBool(true)  => text("true")
     case JBool(false) => text("false")
-    case JNumber(n)   => text(n.toString)
+    case JDouble(n)   => text(n.toString)
+    case JInt(n)      => text(n.toString)
     case JNull        => text("null")
     case JString(s)   => text("\"" + s + "\"")
     case JArray(arr)  => text("[") <> series(arr.map(render(_))) <> text("]")
@@ -43,10 +45,12 @@ object JsonDSL {
   import Json._
 
   implicit def any2jvalue(a: Any) = a match {
-    case x: Int => JNumber(x)
-    case x: Double => JNumber(x)
-    case x: Boolean => JBool(x)
-    case x: String => JString(x)
+    case x: Int        => JInt(x)
+    case x: BigInt     => JInt(x)
+    case x: Double     => JDouble(x)
+    case x: BigDecimal => JDouble(x)
+    case x: Boolean    => JBool(x)
+    case x: String     => JString(x)
   }
   implicit def seq2jvalue[A <% JValue](s: Seq[A]) = 
     JArray(s.toList.map { a => val v: JValue = a; v })
