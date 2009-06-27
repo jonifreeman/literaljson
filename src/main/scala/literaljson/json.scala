@@ -39,7 +39,31 @@ object Json {
   private def text(s: String) = if (s == "") Empty else Text(s)
 }
 
-object PrettyPrinter {
+object JsonDSL {
+  import Json._
+
+  implicit def string2jvalue(s: String) = JString(s)
+  implicit def pair2jvalue[A <% JValue](t: (String, A)) = JObject(List((t._1 -> t._2)))
+  implicit def list2jvalue(l: List[(String, JValue)]) = JObject(l)
+
+  implicit def jobject2assoc(o: JObject) = new JsonListAssoc(o.obj)
+  implicit def pair2Assoc[A <% JValue](t: (String, A)) = new JsonAssoc(t)
+
+  class JsonAssoc[A <% JValue](left: (String, A)) {
+    def ~(right: (String, A)) = {
+      val l: JValue = left._2
+      val r: JValue = right._2
+      JObject((left._1, l) :: (right._1, r) :: Nil)
+    }
+  }
+
+  class JsonListAssoc(left: List[(String, JValue)]) {
+    def ~(right: (String, JValue)) = JObject(right :: left)
+  }
+}
+
+
+object Printer {
   import Json._
 
   def compact(d: Doc) = {
