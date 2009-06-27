@@ -6,27 +6,27 @@ DSL rules
 * Primitive types map to JSON primitives.
 * Any seq produces JSON array.
 
-      scala> val json = List(1, 2, 3)      
-      json: List[Int] = List(1, 2, 3)
+      scala> val json = List(1, 2, 3)
 
       scala> compact(JsonAST.render(json))
+
       res0: String = [1,2,3]
 
 * Tuple2[String, A] produces field.
 
       scala> val json = ("name", "joe")
-      json: (java.lang.String, java.lang.String) = (name,joe)
 
       scala> compact(JsonAST.render(json))
+
       res1: String = {"name":"joe"}
 
 * ~ operator produces object by combining fields.
 
       scala> val json = ("name", "joe") ~ ("age", 35)
-      json: literaljson.JsonAST.JObject = JObject(List((name,JString(joe)), (age,JInt(35))))
 
-      scala> compact(JsonAST.render(json))           
-      res5: String = {"name":"joe","age":35}
+      scala> compact(JsonAST.render(json))
+
+      res2: String = {"name":"joe","age":35}
 
 Example
 -------
@@ -85,8 +85,6 @@ TODO + ideas
 Kudos
 -----
 
-* The original idea for DSL syntax was taken from a Lift mailing list (by Marius).
-  http://markmail.org/message/lniven2hn22vhupu
+* The original idea for DSL syntax was taken from a Lift mailing list ([by Marius](http://markmail.org/message/lniven2hn22vhupu)).
 
-* The idea for AST and rendering was taken from Real World Haskell book.
-  http://book.realworldhaskell.org/read/writing-a-library-working-with-json-data.html
+* The idea for AST and rendering was taken from [Real World Haskell book](http://book.realworldhaskell.org/read/writing-a-library-working-with-json-data.html).
