@@ -65,10 +65,16 @@ object JsonDSL {
       val r: JValue = right._2
       JObject((left._1, l) :: (right._1, r) :: Nil)
     }
+
+    def ~(right: JObject) = {
+      val l: JValue = left._2
+      JObject((left._1, l) :: right.obj)
+    }
   }
 
   class JsonListAssoc(left: List[(String, JValue)]) {
     def ~(right: (String, JValue)) = JObject(right :: left)
+    def ~(right: JObject) = JObject(right.obj ::: left)
   }
 }
 
