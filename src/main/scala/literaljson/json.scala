@@ -4,7 +4,7 @@ object Json {
   sealed abstract class JValue
   case object JNull extends JValue
   case class JString(s: String) extends JValue
-  case class JDouble(num: BigDecimal) extends JValue
+  case class JDouble(num: Double) extends JValue
   case class JInt(num: BigInt) extends JValue
   case class JBool(value: Boolean) extends JValue
   case class JObject(obj: List[(String, JValue)]) extends JValue
@@ -48,7 +48,7 @@ object JsonDSL {
     case x: Int        => JInt(x)
     case x: BigInt     => JInt(x)
     case x: Double     => JDouble(x)
-    case x: BigDecimal => JDouble(x)
+    case x: BigDecimal => JDouble(x.doubleValue)
     case x: Boolean    => JBool(x)
     case x: String     => JString(x)
   }
@@ -61,7 +61,7 @@ object JsonDSL {
   implicit def pair2Assoc[A <% JValue](t: (String, A)) = new JsonAssoc(t)
 
   class JsonAssoc[A <% JValue](left: (String, A)) {
-    def ~(right: (String, A)) = {
+    def ~[B <% JValue](right: (String, B)) = {
       val l: JValue = left._2
       val r: JValue = right._2
       JObject((left._1, l) :: (right._1, r) :: Nil)
