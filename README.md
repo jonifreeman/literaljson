@@ -83,6 +83,11 @@ TODO + ideas
 * Pretty printing.
 * Add parser which parses to AST.
 
+Compile
+-------
+
+    ./sbt compile
+
 Kudos
 -----
 

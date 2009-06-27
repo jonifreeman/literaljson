@@ -50,8 +50,7 @@ object JsonDSL extends Printer {
   implicit def bigdecimal2jvalue(x: BigDecimal) = JDouble(x.doubleValue)
   implicit def boolean2jvalue(x: Boolean) = JBool(x)
   implicit def string2jvalue(x: String) = JString(x)
-  implicit def seq2jvalue[A <% JValue](s: Seq[A]) = 
-    JArray(s.toList.map { a => val v: JValue = a; v })
+  implicit def seq2jvalue[A <% JValue](s: Seq[A]) = JArray(s.toList.map { a => val v: JValue = a; v })
 
   implicit def pair2jvalue[A <% JValue](t: (String, A)) = JObject(List((t._1 -> t._2)))
   implicit def list2jvalue(l: List[(String, JValue)]) = JObject(l)
@@ -76,7 +75,6 @@ object JsonDSL extends Printer {
     def ~(right: JObject) = JObject(left ::: right.obj)
   }
 }
-
 
 trait Printer {
   import JsonAST._
