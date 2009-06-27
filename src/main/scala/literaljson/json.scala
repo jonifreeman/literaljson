@@ -44,14 +44,13 @@ object Json {
 object JsonDSL {
   import Json._
 
-  implicit def any2jvalue(a: Any) = a match {
-    case x: Int        => JInt(x)
-    case x: BigInt     => JInt(x)
-    case x: Double     => JDouble(x)
-    case x: BigDecimal => JDouble(x.doubleValue)
-    case x: Boolean    => JBool(x)
-    case x: String     => JString(x)
-  }
+  implicit def int2jvalue(x: Int) = JInt(x)
+  implicit def long2jvalue(x: Long) = JInt(x)
+  implicit def bigint2jvalue(x: BigInt) = JInt(x)
+  implicit def double2jvalue(x: Double) = JDouble(x)
+  implicit def bigdecimal2jvalue(x: BigDecimal) = JDouble(x.doubleValue)
+  implicit def boolean2jvalue(x: Boolean) = JBool(x)
+  implicit def string2jvalue(x: String) = JString(x)
   implicit def seq2jvalue[A <% JValue](s: Seq[A]) = 
     JArray(s.toList.map { a => val v: JValue = a; v })
 
