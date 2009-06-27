@@ -6,27 +6,27 @@ DSL rules
 * Primitive types map to JSON primitives.
 * Any seq produces JSON array.
 
-    scala> val json = List(1, 2, 3)      
-    json: List[Int] = List(1, 2, 3)
+      scala> val json = List(1, 2, 3)      
+      json: List[Int] = List(1, 2, 3)
 
-    scala> compact(JsonAST.render(json))
-    res0: String = [1,2,3]
+      scala> compact(JsonAST.render(json))
+      res0: String = [1,2,3]
 
 * Tuple2[String, A] produces field.
 
-    scala> val json = ("name", "joe")
-    json: (java.lang.String, java.lang.String) = (name,joe)
+      scala> val json = ("name", "joe")
+      json: (java.lang.String, java.lang.String) = (name,joe)
 
-    scala> compact(JsonAST.render(json))
-    res1: String = {"name":"joe"}
+      scala> compact(JsonAST.render(json))
+      res1: String = {"name":"joe"}
 
 * ~ operator produces object by combining fields.
 
-    scala> val json = ("name", "joe") ~ ("age", 35)
-    json: literaljson.JsonAST.JObject = JObject(List((name,JString(joe)), (age,JInt(35))))
+      scala> val json = ("name", "joe") ~ ("age", 35)
+      json: literaljson.JsonAST.JObject = JObject(List((name,JString(joe)), (age,JInt(35))))
 
-    scala> compact(JsonAST.render(json))           
-    res5: String = {"name":"joe","age":35}
+      scala> compact(JsonAST.render(json))           
+      res5: String = {"name":"joe","age":35}
 
 Example
 -------
