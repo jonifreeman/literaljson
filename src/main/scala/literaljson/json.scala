@@ -42,10 +42,17 @@ object Json {
 object JsonDSL {
   import Json._
 
-  implicit def string2jvalue(s: String) = JString(s)
+  implicit def any2jvalue(a: Any) = a match {
+    case x: Int => JNumber(x)
+    case x: Double => JNumber(x)
+    case x: Boolean => JBool(x)
+    case x: String => JString(x)
+  }
+  implicit def seq2jvalue[A <% JValue](s: Seq[A]) = 
+    JArray(s.toList.map { a => val v: JValue = a; v })
+
   implicit def pair2jvalue[A <% JValue](t: (String, A)) = JObject(List((t._1 -> t._2)))
   implicit def list2jvalue(l: List[(String, JValue)]) = JObject(l)
-
   implicit def jobject2assoc(o: JObject) = new JsonListAssoc(o.obj)
   implicit def pair2Assoc[A <% JValue](t: (String, A)) = new JsonAssoc(t)
 
