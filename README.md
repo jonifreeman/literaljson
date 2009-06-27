@@ -91,6 +91,6 @@ Compile
 Kudos
 -----
 
-* The original idea for DSL syntax was taken from a Lift mailing list ([by Marius](http://markmail.org/message/lniven2hn22vhupu)).
+* The original idea for DSL syntax was taken from Lift mailing list ([by Marius](http://markmail.org/message/lniven2hn22vhupu)).
 
 * The idea for AST and rendering was taken from [Real World Haskell book](http://book.realworldhaskell.org/read/writing-a-library-working-with-json-data.html).
