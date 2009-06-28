@@ -14,7 +14,7 @@ DSL rules
 
 * Tuple2[String, A] produces field.
 
-      scala> val json = ("name", "joe")
+      scala> val json = ("name" -> "joe")
 
       scala> compact(JsonAST.render(json))
 
@@ -22,7 +22,7 @@ DSL rules
 
 * ~ operator produces object by combining fields.
 
-      scala> val json = ("name", "joe") ~ ("age", 35)
+      scala> val json = ("name" -> "joe") ~ ("age" -> 35)
 
       scala> compact(JsonAST.render(json))
 
@@ -30,13 +30,13 @@ DSL rules
 
 * Any value can be optional. Field and value is completely removed when it doesn't have a value.
 
-      scala> val json = ("name", "joe") ~ ("age", Some(35))
+      scala> val json = ("name" -> "joe") ~ ("age" -> Some(35))
 
       scala> compact(JsonAST.render(json))
 
       res3: String = {"name":"joe","age":35}
 
-      scala> val json = ("name", "joe") ~ ("age", None: Option[Int])
+      scala> val json = ("name" -> "joe") ~ ("age" -> (None: Option[Int]))
 
       scala> compact(JsonAST.render(json))
 
