@@ -16,7 +16,6 @@ object JsonAST {
   }
   case object Empty extends Doc
   case object Line extends Doc
-  case object DNothing extends Doc
   case class Text(value: String) extends Doc
   case class Cons(d1: Doc, d2: Doc) extends Doc
 
@@ -26,7 +25,7 @@ object JsonAST {
     case JDouble(n)   => text(n.toString)
     case JInt(n)      => text(n.toString)
     case JNull        => text("null")
-    case JNothing     => DNothing
+    case JNothing     => error("can't render 'nothing'")
     case JString(s)   => text("\"" + s + "\"")
     case JArray(arr)  => text("[") <> series(trimArr(arr).map(render(_))) <> text("]")
     case JObject(obj) => text("{") <> series(trimObj(obj).map(f => text("\"" + f._1 + "\":") <> render(f._2))) <> text("}")
@@ -93,7 +92,6 @@ trait Printer {
       case Empty        => ""
       case Text(s)      => s 
       case Line         => "\n"
-      case DNothing     => error("can't render 'nothing'")
       case Cons(d1, d2) => layout(d1) + layout(d2)
     }
     layout(d)
