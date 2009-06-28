@@ -2,6 +2,7 @@ package literaljson
 
 object JsonAST {
   sealed abstract class JValue
+  case object JNothing extends JValue
   case object JNull extends JValue
   case class JString(s: String) extends JValue
   case class JDouble(num: Double) extends JValue
@@ -15,6 +16,7 @@ object JsonAST {
   }
   case object Empty extends Doc
   case object Line extends Doc
+  case object DNothing extends Doc
   case class Text(value: String) extends Doc
   case class Cons(d1: Doc, d2: Doc) extends Doc
 
@@ -24,11 +26,14 @@ object JsonAST {
     case JDouble(n)   => text(n.toString)
     case JInt(n)      => text(n.toString)
     case JNull        => text("null")
+    case JNothing     => DNothing
     case JString(s)   => text("\"" + s + "\"")
-    case JArray(arr)  => text("[") <> series(arr.map(render(_))) <> text("]")
-    case JObject(obj) => text("{") <> series(obj.map(f => text("\"" + f._1 + "\":") <> render(f._2))) <> text("}")
+    case JArray(arr)  => text("[") <> series(trimArr(arr).map(render(_))) <> text("]")
+    case JObject(obj) => text("{") <> series(trimObj(obj).map(f => text("\"" + f._1 + "\":") <> render(f._2))) <> text("}")
   }
 
+  private def trimArr(xs: List[JValue]) = xs.filter(_ != JNothing)
+  private def trimObj(xs: List[(String, JValue)]) = xs.filter(_._2 != JNothing)
   private def fold(docs: List[Doc]) = docs.foldLeft[Doc](Empty)(_ <> _)
   private def series(docs: List[Doc]) = fold(punctuate(text(","), docs))
   private def punctuate(p: Doc, docs: List[Doc]): List[Doc] = docs match {
@@ -51,6 +56,10 @@ object JsonDSL extends Printer {
   implicit def boolean2jvalue(x: Boolean) = JBool(x)
   implicit def string2jvalue(x: String) = JString(x)
   implicit def seq2jvalue[A <% JValue](s: Seq[A]) = JArray(s.toList.map { a => val v: JValue = a; v })
+  implicit def option2jvalue[A <% JValue](opt: Option[A]): JValue = opt match {
+    case Some(x) => x
+    case None => JNothing
+  }
 
   implicit def pair2jvalue[A <% JValue](t: (String, A)) = JObject(List((t._1 -> t._2)))
   implicit def list2jvalue(l: List[(String, JValue)]) = JObject(l)
@@ -84,6 +93,7 @@ trait Printer {
       case Empty        => ""
       case Text(s)      => s 
       case Line         => "\n"
+      case DNothing     => error("can't render 'nothing'")
       case Cons(d1, d2) => layout(d1) + layout(d2)
     }
     layout(d)

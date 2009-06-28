@@ -28,6 +28,20 @@ DSL rules
 
       res2: String = {"name":"joe","age":35}
 
+* Any value can be optional. Field and value is completely removed when it doesn't have a value.
+
+      scala> val json = ("name", "joe") ~ ("age", Some(35))
+
+      scala> compact(JsonAST.render(json))
+
+      res3: String = {"name":"joe","age":35}
+
+      scala> val json = ("name", "joe") ~ ("age", None: Option[Int])
+
+      scala> compact(JsonAST.render(json))
+
+      res4: String = {"name":"joe"}
+
 Example
 -------
 
@@ -36,15 +50,16 @@ Example
       import literaljson.JsonDSL._
 
       case class Winner(id: Long, numbers: List[Int])
-      case class Lotto(id: Long, winningNumbers: List[Int], winners: List[Winner])
+      case class Lotto(id: Long, winningNumbers: List[Int], winners: List[Winner], drawDate: Option[java.util.Date])
 
       val winners = List(Winner(23, List(2, 45, 34, 23, 3, 5)), Winner(54, List(52, 3, 12, 11, 18, 22)))
-      val lotto = Lotto(5, List(2, 45, 34, 23, 7, 5, 3), winners)
+      val lotto = Lotto(5, List(2, 45, 34, 23, 7, 5, 3), winners, None)
 
       val json = 
         ("lotto" ->
           ("lotto-id" -> lotto.id) ~
           ("winning-numbers" -> lotto.winningNumbers) ~
+          ("draw-date" -> lotto.drawDate.map(_.toString)) ~
           ("winners" ->
             lotto.winners.map { w =>
               (("winner-id" -> w.id) ~
@@ -56,7 +71,7 @@ Example
     scala> JsonExample
     {"lotto":{"lotto-id":5,"winning-numbers":[2,45,34,23,7,5,3],"winners":[{"winner-id":23,"numbers":[2,45,34,23,3,5]},{"winner-id":54,"numbers":[52,3,12,11,18,22]}]}}
 
-Example produces following pretty printed JSON:
+Example produces following pretty printed JSON. Notice that draw-date field is not rendered since its value is None:
 
     { 
       "lotto": {
@@ -78,7 +93,6 @@ Example produces following pretty printed JSON:
 TODO + ideas
 ------------
 
-* Support for Options.
 * String escaping.
 * Pretty printing.
 * Add parser which parses to AST.
