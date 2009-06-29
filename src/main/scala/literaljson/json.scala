@@ -25,7 +25,7 @@ object JsonAST {
       case JString(s)   => text("\"" + s + "\"")
       case JArray(arr)  => text("[") :: series(trimArr(arr).map(render(_, indentation))) :: text("]")
       case JObject(obj) => 
-        val nested = series(trimObj(obj).map(f => text("\"" + f._1 + "\":") :: render(f._2, indentation + 2)))
+        val nested = fields(trimObj(obj).map(f => text("\"" + f._1 + "\":") :: render(f._2, indentation + 2)))
         text("{") :: break :: nest(indentation, nested) :: break :: text("}")
     }
 
@@ -36,6 +36,7 @@ object JsonAST {
   private def trimObj(xs: List[(String, JValue)]) = xs.filter(_._2 != JNothing)
   private def fold(docs: List[Document]) = docs.foldLeft[Document](empty)(_ :: _)
   private def series(docs: List[Document]) = fold(punctuate(text(","), docs))
+  private def fields(docs: List[Document]) = fold(punctuate(text(",") :: break, docs))
   private def punctuate(p: Document, docs: List[Document]): List[Document] = docs match {
     case Nil => Nil
     case List(d) => List(d)
@@ -92,6 +93,7 @@ trait Printer {
       case DocCons(d1, d2) => layout(d1) + layout(d2)
       case DocBreak        => ""
       case DocNest(_, d)   => layout(d)
+      case DocGroup(d)     => layout(d)
       case DocNil          => ""
     }
     layout(d)
