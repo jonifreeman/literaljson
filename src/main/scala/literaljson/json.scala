@@ -1,6 +1,9 @@
 package literaljson
 
 object JsonAST {
+  import scala.text.Document
+  import scala.text.Document._
+
   sealed abstract class JValue
   case object JNothing extends JValue
   case object JNull extends JValue
@@ -11,15 +14,7 @@ object JsonAST {
   case class JObject(obj: List[(String, JValue)]) extends JValue
   case class JArray(arr: List[JValue]) extends JValue
 
-  sealed abstract class Doc {
-    def <>(other: Doc) = Cons(this, other)
-  }
-  case object Empty extends Doc
-  case object Line extends Doc
-  case class Text(value: String) extends Doc
-  case class Cons(d1: Doc, d2: Doc) extends Doc
-
-  def render(value: JValue): Doc = value match {
+  def render(value: JValue): Document = value match {
     case JBool(true)  => text("true")
     case JBool(false) => text("false")
     case JDouble(n)   => text(n.toString)
@@ -27,21 +22,19 @@ object JsonAST {
     case JNull        => text("null")
     case JNothing     => error("can't render 'nothing'")
     case JString(s)   => text("\"" + s + "\"")
-    case JArray(arr)  => text("[") <> series(trimArr(arr).map(render(_))) <> text("]")
-    case JObject(obj) => text("{") <> series(trimObj(obj).map(f => text("\"" + f._1 + "\":") <> render(f._2))) <> text("}")
+    case JArray(arr)  => text("[") :: series(trimArr(arr).map(render(_))) :: text("]")
+    case JObject(obj) => text("{") :: series(trimObj(obj).map(f => text("\"" + f._1 + "\":") :: render(f._2))) :: text("}")
   }
 
   private def trimArr(xs: List[JValue]) = xs.filter(_ != JNothing)
   private def trimObj(xs: List[(String, JValue)]) = xs.filter(_._2 != JNothing)
-  private def fold(docs: List[Doc]) = docs.foldLeft[Doc](Empty)(_ <> _)
-  private def series(docs: List[Doc]) = fold(punctuate(text(","), docs))
-  private def punctuate(p: Doc, docs: List[Doc]): List[Doc] = docs match {
+  private def fold(docs: List[Document]) = docs.foldLeft[Document](empty)(_ :: _)
+  private def series(docs: List[Document]) = fold(punctuate(text(","), docs))
+  private def punctuate(p: Document, docs: List[Document]): List[Document] = docs match {
     case Nil => Nil
     case List(d) => List(d)
-    case d :: ds => (d <> p) :: punctuate(p, ds)
+    case d :: ds => (d :: p) :: punctuate(p, ds)
   }
-
-  private def text(s: String) = if (s == "") Empty else Text(s)
 }
 
 object JsonDSL extends Printer {
@@ -85,14 +78,13 @@ object JsonDSL extends Printer {
 }
 
 trait Printer {
-  import JsonAST._
+  import scala.text._
 
-  def compact(d: Doc) = {
-    def layout(doc: Doc): String = doc match {
-      case Empty        => ""
-      case Text(s)      => s 
-      case Line         => "\n"
-      case Cons(d1, d2) => layout(d1) + layout(d2)
+  def compact(d: Document) = {
+    def layout(doc: Document): String = doc match {
+      case DocText(s)      => s 
+      case DocCons(d1, d2) => layout(d1) + layout(d2)
+      case DocNil          => ""
     }
     layout(d)
   }
