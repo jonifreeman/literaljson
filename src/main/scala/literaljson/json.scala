@@ -14,16 +14,22 @@ object JsonAST {
   case class JObject(obj: List[(String, JValue)]) extends JValue
   case class JArray(arr: List[JValue]) extends JValue
 
-  def render(value: JValue): Document = value match {
-    case JBool(true)  => text("true")
-    case JBool(false) => text("false")
-    case JDouble(n)   => text(n.toString)
-    case JInt(n)      => text(n.toString)
-    case JNull        => text("null")
-    case JNothing     => error("can't render 'nothing'")
-    case JString(s)   => text("\"" + s + "\"")
-    case JArray(arr)  => text("[") :: series(trimArr(arr).map(render(_))) :: text("]")
-    case JObject(obj) => text("{") :: series(trimObj(obj).map(f => text("\"" + f._1 + "\":") :: render(f._2))) :: text("}")
+  def render(value: JValue): Document = {
+    def render(value: JValue, indentation: Int): Document = value match {
+      case JBool(true)  => text("true")
+      case JBool(false) => text("false")
+      case JDouble(n)   => text(n.toString)
+      case JInt(n)      => text(n.toString)
+      case JNull        => text("null")
+      case JNothing     => error("can't render 'nothing'")
+      case JString(s)   => text("\"" + s + "\"")
+      case JArray(arr)  => text("[") :: series(trimArr(arr).map(render(_, indentation))) :: text("]")
+      case JObject(obj) => 
+        val nested = series(trimObj(obj).map(f => text("\"" + f._1 + "\":") :: render(f._2, indentation + 2)))
+        text("{") :: break :: nest(indentation, nested) :: break :: text("}")
+    }
+
+    render(value, 0)
   }
 
   private def trimArr(xs: List[JValue]) = xs.filter(_ != JNothing)
@@ -84,8 +90,16 @@ trait Printer {
     def layout(doc: Document): String = doc match {
       case DocText(s)      => s 
       case DocCons(d1, d2) => layout(d1) + layout(d2)
+      case DocBreak        => ""
+      case DocNest(_, d)   => layout(d)
       case DocNil          => ""
     }
     layout(d)
+  }
+
+  def pretty(d: Document) = {
+    val s = new java.io.StringWriter
+    d.format(80, s)
+    s.toString
   }
 }
