@@ -21,7 +21,7 @@ object JsonAST {
     case JInt(n)      => text(n.toString)
     case JNull        => text("null")
     case JNothing     => error("can't render 'nothing'")
-    case JString(s)   => text("\"" + s + "\"")
+    case JString(s)   => text("\"" + quote(s) + "\"")
     case JArray(arr)  => text("[") :: series(trimArr(arr).map(render(_))) :: text("]")
     case JObject(obj) => 
       val nested = break :: fields(trimObj(obj).map(f => text("\"" + f._1 + "\":") :: render(f._2)))
@@ -38,6 +38,17 @@ object JsonAST {
     case List(d) => List(d)
     case d :: ds => (d :: p) :: punctuate(p, ds)
   }
+
+  private def quote(s: String) = (s.map { 
+    _ match {
+      case '\r' => "\\r"
+      case '\n' => "\\n"
+      case '\t' => "\\t"
+      case '"'  => "\\\""
+      case '\\' => "\\\\"
+      case c if ((c >= '\u0000' && c < '\u001f') || (c >= '\u0080' && c < '\u00a0') || (c >= '\u2000' && c < '\u2100')) => "\\u%04x".format(c.asInstanceOf[Int])
+      case c => c
+    }}).mkString
 }
 
 object JsonDSL extends Printer {

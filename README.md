@@ -92,7 +92,6 @@ Example produces following pretty printed JSON. Notice that draw-date field is n
 TODO + ideas
 ------------
 
-* String escaping.
 * Add parser which parses to AST.
 
 Compile
