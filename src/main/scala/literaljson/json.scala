@@ -5,15 +5,16 @@ object JsonAST {
   import scala.text.Document._
 
   sealed abstract class JValue {
+    // FIXME this must be tail recursive
     def \\(nameToFind: String) = {
       def find(json: JValue): List[JField] = json match {
-        case JObject(l) => l.foldLeft(List[JField]())((a, e) => find(e) ::: a)
-        case JArray(l) => l.foldLeft(List[JField]())((a, e) => find(e) ::: a)
-        case field @ JField(name, value) if name == nameToFind => field :: Nil
+        case JObject(l) => l.foldLeft(List[JField]())((a, e) => a ::: find(e))
+        case JArray(l) => l.foldLeft(List[JField]())((a, e) => a ::: find(e))
+        case field @ JField(name, value) if name == nameToFind => field :: find(value)
         case JField(_, value) => find(value)
         case _ => Nil
       }
-      find(this)
+      JObject(find(this))
     }
   }
 
