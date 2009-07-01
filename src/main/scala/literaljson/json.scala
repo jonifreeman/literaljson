@@ -4,7 +4,19 @@ object JsonAST {
   import scala.text.Document
   import scala.text.Document._
 
-  sealed abstract class JValue
+  sealed abstract class JValue {
+    def \\(nameToFind: String) = {
+      def find(json: JValue): List[JField] = json match {
+        case JObject(l) => l.foldLeft(List[JField]())((a, e) => find(e) ::: a)
+        case JArray(l) => l.foldLeft(List[JField]())((a, e) => find(e) ::: a)
+        case field @ JField(name, value) if name == nameToFind => field :: Nil
+        case JField(_, value) => find(value)
+        case _ => Nil
+      }
+      find(this)
+    }
+  }
+
   case object JNothing extends JValue
   case object JNull extends JValue
   case class JString(s: String) extends JValue
