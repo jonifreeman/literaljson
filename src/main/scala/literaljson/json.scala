@@ -11,7 +11,8 @@ object JsonAST {
   case class JDouble(num: Double) extends JValue
   case class JInt(num: BigInt) extends JValue
   case class JBool(value: Boolean) extends JValue
-  case class JObject(obj: List[(String, JValue)]) extends JValue
+  case class JField(name: String, value: JValue) extends JValue
+  case class JObject(obj: List[JField]) extends JValue
   case class JArray(arr: List[JValue]) extends JValue
 
   def render(value: JValue): Document = value match {
@@ -24,12 +25,12 @@ object JsonAST {
     case JString(s)   => text("\"" + quote(s) + "\"")
     case JArray(arr)  => text("[") :: series(trimArr(arr).map(render(_))) :: text("]")
     case JObject(obj) => 
-      val nested = break :: fields(trimObj(obj).map(f => text("\"" + f._1 + "\":") :: render(f._2)))
+      val nested = break :: fields(trimObj(obj).map(f => text("\"" + f.name + "\":") :: render(f.value)))
       text("{") :: nest(2, nested) :: break :: text("}")
   }
 
   private def trimArr(xs: List[JValue]) = xs.filter(_ != JNothing)
-  private def trimObj(xs: List[(String, JValue)]) = xs.filter(_._2 != JNothing)
+  private def trimObj(xs: List[JField]) = xs.filter(_.value != JNothing)
   private def fold(docs: List[Document]) = docs.foldLeft[Document](empty)(_ :: _)
   private def series(docs: List[Document]) = fold(punctuate(text(","), docs))
   private def fields(docs: List[Document]) = fold(punctuate(text(",") :: break, docs))
@@ -67,8 +68,8 @@ object JsonDSL extends Printer {
     case None => JNothing
   }
 
-  implicit def pair2jvalue[A <% JValue](t: (String, A)) = JObject(List((t._1 -> t._2)))
-  implicit def list2jvalue(l: List[(String, JValue)]) = JObject(l)
+  implicit def pair2jvalue[A <% JValue](t: (String, A)) = JObject(List(JField(t._1, t._2)))
+  implicit def list2jvalue(l: List[JField]) = JObject(l)
   implicit def jobject2assoc(o: JObject) = new JsonListAssoc(o.obj)
   implicit def pair2Assoc[A <% JValue](t: (String, A)) = new JsonAssoc(t)
 
@@ -76,17 +77,17 @@ object JsonDSL extends Printer {
     def ~[B <% JValue](right: (String, B)) = {
       val l: JValue = left._2
       val r: JValue = right._2
-      JObject((left._1, l) :: (right._1, r) :: Nil)
+      JObject(JField(left._1, l) :: JField(right._1, r) :: Nil)
     }
 
     def ~(right: JObject) = {
       val l: JValue = left._2
-      JObject((left._1, l) :: right.obj)
+      JObject(JField(left._1, l) :: right.obj)
     }
   }
 
-  class JsonListAssoc(left: List[(String, JValue)]) {
-    def ~(right: (String, JValue)) = JObject(left ::: List(right))
+  class JsonListAssoc(left: List[JField]) {
+    def ~(right: (String, JValue)) = JObject(left ::: List(JField(right._1, right._2)))
     def ~(right: JObject) = JObject(left ::: right.obj)
   }
 }

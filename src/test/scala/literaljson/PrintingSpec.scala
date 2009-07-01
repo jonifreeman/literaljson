@@ -24,10 +24,10 @@ object PrintingSpec extends Properties("Printing") {
     arbitrary[String].map(JString(_)))
 
   def genArray: Gen[JValue] = for (l <- genList) yield JArray(l)
-  def genObject: Gen[JValue] = for (l <- genTupleList) yield JObject(l)
+  def genObject: Gen[JValue] = for (l <- genFieldList) yield JObject(l)
 
   def genList = Gen.containerOfN[List, JValue](listSize, genJValue)
-  def genTupleList = Gen.containerOfN[List, (String, JValue)](listSize, genField)
-  def genField = for (name <- identifier; value <- genJValue) yield (name, value)
+  def genFieldList = Gen.containerOfN[List, JField](listSize, genField)
+  def genField = for (name <- identifier; value <- genJValue) yield JField(name, value)
   def listSize = choose(0, 5).sample.get
 }
