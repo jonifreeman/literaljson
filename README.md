@@ -69,7 +69,8 @@ Example
     }
 
     scala> JsonExample
-    {"lotto":{"lotto-id":5,"winning-numbers":[2,45,34,23,7,5,3],"winners":[{"winner-id":23,"numbers":[2,45,34,23,3,5]},{"winner-id":54,"numbers":[52,3,12,11,18,22]}]}}
+    {"lotto":{"lotto-id":5,"winning-numbers":[2,45,34,23,7,5,3],"winners":
+    [{"winner-id":23,"numbers":[2,45,34,23,3,5]},{"winner-id":54,"numbers":[52,3,12,11,18,22]}]}}
 
 Example produces following pretty printed JSON. Notice that draw-date field is not rendered since its value is None:
 
@@ -93,7 +94,7 @@ Queries
 -------
 
 Json AST can be queried using XPath like functions (note, this is not too useful until we have a parser).
-Following REPL session shows the usage of '\' and '\\' functions. 
+Following REPL session shows the usage of '\\' and '\\\\' functions. 
 
     The example json is:
 
@@ -128,7 +129,8 @@ Following REPL session shows the usage of '\' and '\\' functions.
       )
 
     scala> json \\ "spouse"
-    res0: literaljson.JsonAST.JValue = JObject(List(JField(spouse,JObject(List(JField(person,JObject(List(JField(name,JString(Marilyn)), JField(age,JInt(33))))))))))
+    res0: literaljson.JsonAST.JValue = JObject(List(JField(spouse,JObject(List(
+          JField(person,JObject(List(JField(name,JString(Marilyn)), JField(age,JInt(33))))))))))
 
     scala> compact(render(res0))
     res1: String = {"spouse":{"person":{"name":"Marilyn","age":33}}}
