@@ -89,6 +89,59 @@ Example produces following pretty printed JSON. Notice that draw-date field is n
       }
     }
 
+Queries
+-------
+
+Json AST can be queried using XPath like functions (note, this is not too useful until we have a parser).
+Following REPL session shows the usage of '\' and '\\' functions. 
+
+    The example json is:
+
+    { 
+      "person": {
+        "name": "Joe",
+        "age": 35,
+        "spouse": {
+          "person": {
+            "name": "Marilyn"
+            "age": 33
+          }
+        }
+      }
+    }
+
+    Translated to DSL syntax:
+
+    scala> import literaljson.AST._
+    scala> import literaljson.DSL._
+
+    scala> val json = 
+      ("person" ->
+        ("name" -> "Joe") ~
+        ("age" -> 35) ~
+        ("spouse" -> 
+          ("person" -> 
+            ("name" -> "Marilyn") ~
+            ("age" -> 33)
+          )
+        )
+      )
+
+    scala> json \\ "spouse"
+    res0: literaljson.JsonAST.JValue = JObject(List(JField(spouse,JObject(List(JField(person,JObject(List(JField(name,JString(Marilyn)), JField(age,JInt(33))))))))))
+
+    scala> compact(render(res0))
+    res1: String = {"spouse":{"person":{"name":"Marilyn","age":33}}}
+
+    scala> compact(render(json \\ "name"))
+    res2: String = {"name":"Joe","name":"Marilyn"}
+
+    scala> compact(render(json \ "name"))
+    res3: String = {"name":"Joe"}
+
+    scala> compact(render(json \ "spouse" \ "person" \ "name"))
+    res4: String = {"name":"Marilyn"}
+
 TODO + ideas
 ------------
 

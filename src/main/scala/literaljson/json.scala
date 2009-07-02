@@ -5,8 +5,19 @@ object JsonAST {
   import scala.text.Document._
 
   sealed abstract class JValue {
+    def \(nameToFind: String): JValue = {
+      def find = children.flatMap { _ match {
+        case JObject(l) => l.filter { _ match {
+          case field @ JField(name, value) if name == nameToFind => true
+          case _ => false
+        }}
+        case _ => Nil
+      }}
+      JObject(find)
+    }
+
     // FIXME this must be tail recursive
-    def \\(nameToFind: String) = {
+    def \\(nameToFind: String): JValue = {
       def find(json: JValue): List[JField] = json match {
         case JObject(l) => l.foldLeft(List[JField]())((a, e) => a ::: find(e))
         case JArray(l) => l.foldLeft(List[JField]())((a, e) => a ::: find(e))
@@ -15,6 +26,11 @@ object JsonAST {
         case _ => Nil
       }
       JObject(find(this))
+    }
+
+    def children = this match {
+      case JObject(l) => l.map(_.value)
+      case _ => Nil
     }
   }
 
