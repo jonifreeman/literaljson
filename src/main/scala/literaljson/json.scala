@@ -6,13 +6,13 @@ object JsonAST {
 
   sealed abstract class JValue {
     def \(nameToFind: String): JValue = {
-      def find = children.flatMap { _ match {
-        case JObject(l) => l.filter { _ match {
+      def find = children.flatMap {
+        case JObject(l) => l.filter {
           case field @ JField(name, value) if name == nameToFind => true
           case _ => false
-        }}
+        }
         case _ => Nil
-      }}
+      }
       JObject(find)
     }
 
