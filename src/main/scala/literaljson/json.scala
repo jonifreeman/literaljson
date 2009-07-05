@@ -5,7 +5,7 @@ object JsonAST {
   import scala.text.Document._
 
   sealed abstract class JValue {
-    def \(nameToFind: String): JValue = {
+    def \(nameToFind: String): JObject = {
       def find = children.flatMap {
         case JObject(l) => l.filter {
           case field @ JField(name, value) if name == nameToFind => true
@@ -17,7 +17,7 @@ object JsonAST {
     }
 
     // FIXME this must be tail recursive
-    def \\(nameToFind: String): JValue = {
+    def \\(nameToFind: String): JObject = {
       def find(json: JValue): List[JField] = json match {
         case JObject(l) => l.foldLeft(List[JField]())((a, e) => a ::: find(e))
         case JArray(l) => l.foldLeft(List[JField]())((a, e) => a ::: find(e))
@@ -31,6 +31,32 @@ object JsonAST {
     def children = this match {
       case JObject(l) => l.map(_.value)
       case _ => Nil
+    }
+
+    def find(p: JValue => Boolean): Option[JValue] = {
+      def find(json: JValue): Option[JValue] = {
+        if (p(json)) return Some(json)
+        json match {
+          case JObject(l) => l.flatMap(find _).firstOption
+          case JArray(l) => l.flatMap(find _).firstOption
+          case JField(_, value) => find(value)
+          case _ => None
+        }
+      }
+      find(this)
+    }
+
+    def filter(p: JValue => Boolean): List[JValue] = {
+      def filter(json: JValue, acc: List[JValue]): List[JValue] = {
+        val newAcc = if (p(json)) json :: acc else acc
+        json match {
+          case JObject(l) => l.foldLeft(newAcc)((a, e) => filter(e, a))
+          case JArray(l) => l.foldLeft(newAcc)((a, e) => filter(e, a))
+          case JField(_, value) => filter(value, newAcc)
+          case _ => newAcc
+        }
+      }
+      filter(this, Nil).reverse
     }
   }
 

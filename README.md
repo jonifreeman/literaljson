@@ -94,7 +94,7 @@ Queries
 -------
 
 Json AST can be queried using XPath like functions (note, this is not too useful until we have a parser).
-Following REPL session shows the usage of '\\' and '\\\\' functions. 
+Following REPL session shows the usage of '\\', '\\\\', 'find' and 'filter' functions. 
 
     The example json is:
 
@@ -143,6 +143,18 @@ Following REPL session shows the usage of '\\' and '\\\\' functions.
 
     scala> compact(render(json \ "spouse" \ "person" \ "name"))
     res4: String = {"name":"Marilyn"}
+
+    scala> json find {
+             case JField("name", _) => true
+             case _ => false
+           }
+    res5: Option[literaljson.JsonAST.JValue] = Some(JField(name,JString(Joe)))
+
+    scala> json filter {
+             case JField("name", _) => true
+             case _ => false
+           }
+    res6: List[literaljson.JsonAST.JValue] = List(JField(name,JString(Joe)), JField(name,JString(Marilyn)))
 
 TODO + ideas
 ------------
