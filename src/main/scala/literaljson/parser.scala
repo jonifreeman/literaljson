@@ -9,6 +9,7 @@ object JsonParser {
   case class FieldStart(name: String) extends Token
   case object End extends Token
   case class StringVal(value: String) extends Token
+  case class IntVal(value: BigInt) extends Token
   case object OpenArr extends Token
   case object CloseArr extends Token
 
@@ -22,6 +23,10 @@ object JsonParser {
 
   case class MString(value: String) extends MValue {
     def toJValue = JString(value)
+  }
+
+  case class MInt(value: BigInt) extends MValue {
+    def toJValue = JInt(value)
   }
 
   case class MObject() extends MValue {
@@ -58,6 +63,17 @@ object JsonParser {
       }
     }
 
+    def newValue(v: MValue) {
+      vals.peek[MValue] match {
+        case f: MField =>
+          vals.pop[MField]
+          f.value = v
+          vals.peek[MObject] += f
+        case a: MArray =>
+          a += v
+      }
+    }
+
     do {
       token = p.nextToken
       token match {
@@ -66,21 +82,15 @@ object JsonParser {
         case FieldStart(name) => 
           vals.push(MField(name, null))
         case StringVal(x) => 
-          vals.peek[MValue] match {
-            case f: MField =>
-              vals.pop[MField]
-              f.value = MString(x)
-              vals.peek[MObject] += f
-            case a: MArray =>
-              a += MString(x)
-          }
+          newValue(MString(x))
+        case IntVal(x) => 
+          newValue(MInt(x))
         case CloseObj =>
           closeBlock(vals.pop[MValue])          
         case OpenArr => 
           vals.push(MArray())
         case CloseArr =>
-          val arr = vals.pop[MArray]
-          closeBlock(arr)
+          closeBlock(vals.pop[MArray])
         case End =>
       }
     } while (token != End)
@@ -114,10 +124,20 @@ object JsonParser {
     var fieldNameMode = true
 
     def nextToken: Token = {
+      def indexOfLastDigit(s: String, index: Int): Int = {
+        var i = index
+        while (true) {
+          if (!Character.isDigit(s.charAt(i))) return i - 1
+          i = i + 1
+        }
+        error("expected Int")
+      }
+
       var i = 0      
       try {
         while (true) {
           var c = rest.charAt(i)
+          // FIXME pattern match
           if (c == '{') {
             blocks.push(OBJECT)
             rest = rest.substring(i + 1)
@@ -136,6 +156,13 @@ object JsonParser {
               fieldNameMode = true
               return StringVal(value)
             }
+          } else if (Character.isDigit(c)) {
+//            val end = rest.indexOf(" ", i) min rest.indexOf(",", i) min rest.indexOf("]", i) FIXME -1 case
+            val end = indexOfLastDigit(rest, i)
+            val value = rest.substring(i, end + 1)
+            rest = rest.substring(end + 1)
+            fieldNameMode = true
+            return IntVal(BigInt(value))
           } else if (c == ':') {
             fieldNameMode = false
             i = i + 1
