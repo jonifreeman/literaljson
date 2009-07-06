@@ -1,5 +1,7 @@
 package literaljson
 
+/** Fast imperative parser.
+ */
 object JsonParser {
   import JsonAST._
 
@@ -157,7 +159,6 @@ object JsonParser {
               return StringVal(value)
             }
           } else if (Character.isDigit(c)) {
-//            val end = rest.indexOf(" ", i) min rest.indexOf(",", i) min rest.indexOf("]", i) FIXME -1 case
             val end = indexOfLastDigit(rest, i)
             val value = rest.substring(i, end + 1)
             rest = rest.substring(end + 1)
