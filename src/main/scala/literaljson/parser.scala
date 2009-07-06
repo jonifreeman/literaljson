@@ -38,16 +38,22 @@ object JsonParser {
     do {
       token = p.nextToken
       token match {
-        case OpenObj => vals.push(MObject())
-        case FieldStart(name) => vals.push(MField(name, null))
+        case OpenObj => 
+          vals.push(MObject())
+        case FieldStart(name) => 
+          vals.push(MField(name, null))
         case StringVal(x) => 
           val field = vals.pop[MField]
           field.value = MString(x)
           vals.peek[MObject] += field
         case CloseObj =>
-          val obj = vals.pop[MObject]
+          val obj = vals.pop[MValue]
           vals.peekOption match {
-            case Some(f: MField) => f.value = obj
+            case Some(f: MField) => 
+              f.value = obj
+              val field = vals.pop[MField]
+              vals.peek[MObject] += field
+            case Some(o: MObject) => o += obj.asInstanceOf[MField]
             case None => roots = obj.toJValue :: roots
           }
         case End =>
@@ -86,6 +92,7 @@ object JsonParser {
           var c = rest.charAt(i)
           if (c == '{') {
             rest = rest.substring(i + 1)
+            fieldNameMode = true
             return OpenObj
           } else if (c == '}') {
             rest = rest.substring(i + 1)
@@ -103,7 +110,8 @@ object JsonParser {
             fieldNameMode = false
             i = i + 1
           }
-          else if (c == ' ') i = i + 1
+          else if (c == ' ' || c == ',') i = i + 1
+          else error("unknown token " + c)
         }
         error("parse error " + rest)
       } catch {
