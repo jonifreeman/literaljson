@@ -9,6 +9,8 @@ object JsonParser {
   case class FieldStart(name: String) extends Token
   case object End extends Token
   case class StringVal(value: String) extends Token
+  case object OpenArr extends Token
+  case object CloseArr extends Token
 
   trait MValue {
     def toJValue: JValue
@@ -29,12 +31,33 @@ object JsonParser {
 
     def toJValue = JObject(fields.map(_.toJValue))
   }
+
+  case class MArray() extends MValue {
+    var values = List[MValue]()
+
+    def +=(v: MValue) = values = v :: values
+
+    def toJValue = JArray(values.map(_.toJValue))
+  }
   
   def parse(s: String): Option[JValue] = {
     val p = new Parser(s)
     val vals = new ValStack
     var token: Token = null
     var roots = List[JValue]()
+
+    def closeBlock(v: MValue) {
+      vals.peekOption match {
+        case Some(f: MField) => 
+          f.value = v
+          val field = vals.pop[MField]
+          vals.peek[MObject] += field
+        case Some(o: MObject) => o += v.asInstanceOf[MField]
+        case Some(a: MArray) => a += v
+        case None => roots = v.toJValue :: roots
+      }
+    }
+
     do {
       token = p.nextToken
       token match {
@@ -43,19 +66,21 @@ object JsonParser {
         case FieldStart(name) => 
           vals.push(MField(name, null))
         case StringVal(x) => 
-          val field = vals.pop[MField]
-          field.value = MString(x)
-          vals.peek[MObject] += field
-        case CloseObj =>
-          val obj = vals.pop[MValue]
-          vals.peekOption match {
-            case Some(f: MField) => 
-              f.value = obj
-              val field = vals.pop[MField]
-              vals.peek[MObject] += field
-            case Some(o: MObject) => o += obj.asInstanceOf[MField]
-            case None => roots = obj.toJValue :: roots
+          vals.peek[MValue] match {
+            case f: MField =>
+              vals.pop[MField]
+              f.value = MString(x)
+              vals.peek[MObject] += f
+            case a: MArray =>
+              a += MString(x)
           }
+        case CloseObj =>
+          closeBlock(vals.pop[MValue])          
+        case OpenArr => 
+          vals.push(MArray())
+        case CloseArr =>
+          val arr = vals.pop[MArray]
+          closeBlock(arr)
         case End =>
       }
     } while (token != End)
@@ -83,6 +108,9 @@ object JsonParser {
   }
 
   private class Parser(private var rest: String) {
+    import scala.collection.mutable.Stack
+
+    val blocks = new Stack[BlockMode]()
     var fieldNameMode = true
 
     def nextToken: Token = {
@@ -91,17 +119,19 @@ object JsonParser {
         while (true) {
           var c = rest.charAt(i)
           if (c == '{') {
+            blocks.push(OBJECT)
             rest = rest.substring(i + 1)
             fieldNameMode = true
             return OpenObj
           } else if (c == '}') {
+            blocks.pop
             rest = rest.substring(i + 1)
             return CloseObj
           } else if (c == '"') {
             val end = rest.indexOf("\"", i + 1)
             val value = rest.substring(i + 1, end)
             rest = rest.substring(end + 1)
-            if (fieldNameMode) return FieldStart(value)
+            if (fieldNameMode && blocks.top == OBJECT) return FieldStart(value)
             else {
               fieldNameMode = true
               return StringVal(value)
@@ -109,8 +139,16 @@ object JsonParser {
           } else if (c == ':') {
             fieldNameMode = false
             i = i + 1
+          } else if (c == '[') {
+            blocks.push(ARRAY)
+            rest = rest.substring(i + 1)
+            return OpenArr
+          } else if (c == ']') {
+            blocks.pop
+            rest = rest.substring(i + 1)
+            return CloseArr
           }
-          else if (c == ' ' || c == ',') i = i + 1
+          else if (c == ' ' || c == '\n' || c == ',') i = i + 1
           else error("unknown token " + c)
         }
         error("parse error " + rest)
@@ -118,5 +156,9 @@ object JsonParser {
         case e: StringIndexOutOfBoundsException => End
       }
     }
+
+    sealed abstract class BlockMode
+    case object ARRAY extends BlockMode
+    case object OBJECT extends BlockMode
   }
 }
