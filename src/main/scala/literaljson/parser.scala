@@ -42,11 +42,11 @@ object JsonParser {
   }
 
   case class MObject() extends MValue with MBlock[MField] {
-    def toJValue = JObject(elems.map(_.toJValue))
+    def toJValue = JObject(elems.map(_.toJValue).reverse)
   }
 
   case class MArray() extends MValue with MBlock[MValue] {
-    def toJValue = JArray(elems.map(_.toJValue))
+    def toJValue = JArray(elems.map(_.toJValue).reverse)
   }
   
   def parse(s: String): Option[JValue] = {
