@@ -135,46 +135,45 @@ object JsonParser {
       var i = 0      
       try {
         while (true) {
-          var c = rest.charAt(i)
-          // FIXME pattern match
-          if (c == '{') {
-            blocks.push(OBJECT)
-            rest = rest.substring(i + 1)
-            fieldNameMode = true
-            return OpenObj
-          } else if (c == '}') {
-            blocks.pop
-            rest = rest.substring(i + 1)
-            return CloseObj
-          } else if (c == '"') {
-            val end = rest.indexOf("\"", i + 1)
-            val value = rest.substring(i + 1, end)
-            rest = rest.substring(end + 1)
-            if (fieldNameMode && blocks.top == OBJECT) return FieldStart(value)
-            else {
+          rest.charAt(i) match {
+            case '{' =>
+              blocks.push(OBJECT)
+              rest = rest.substring(i + 1)
               fieldNameMode = true
-              return StringVal(value)
-            }
-          } else if (Character.isDigit(c)) {
-            val end = indexOfLastDigit(rest, i)
-            val value = rest.substring(i, end + 1)
-            rest = rest.substring(end + 1)
-            fieldNameMode = true
-            if (value.contains('.')) return DoubleVal(value.toDouble) else return IntVal(BigInt(value))
-          } else if (c == ':') {
-            fieldNameMode = false
-            i = i + 1
-          } else if (c == '[') {
-            blocks.push(ARRAY)
-            rest = rest.substring(i + 1)
-            return OpenArr
-          } else if (c == ']') {
-            blocks.pop
-            rest = rest.substring(i + 1)
-            return CloseArr
+              return OpenObj
+            case '}' =>
+              blocks.pop
+              rest = rest.substring(i + 1)
+              return CloseObj
+            case '"' =>
+              val end = rest.indexOf("\"", i + 1)
+              val value = rest.substring(i + 1, end)
+              rest = rest.substring(end + 1)
+              if (fieldNameMode && blocks.top == OBJECT) return FieldStart(value)
+              else {
+                fieldNameMode = true
+                return StringVal(value)
+              }
+            case c if Character.isDigit(c) =>
+              val end = indexOfLastDigit(rest, i)
+              val value = rest.substring(i, end + 1)
+              rest = rest.substring(end + 1)
+              fieldNameMode = true
+              if (value.contains('.')) return DoubleVal(value.toDouble) else return IntVal(BigInt(value))
+            case ':' =>
+              fieldNameMode = false
+              i = i + 1
+            case '[' =>
+              blocks.push(ARRAY)
+              rest = rest.substring(i + 1)
+              return OpenArr
+            case ']' =>
+              blocks.pop
+              rest = rest.substring(i + 1)
+              return CloseArr
+            case ' ' | '\n' | ',' => i = i + 1
+            case c => error("unknown token " + c)
           }
-          else if (c == ' ' || c == '\n' || c == ',') i = i + 1
-          else error("unknown token " + c)
         }
         error("parse error " + rest)
       } catch {
