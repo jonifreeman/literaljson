@@ -13,6 +13,12 @@ class ExampleSuite extends FunSuite {
     assert(lottoAST == parse(renderedLotto))    
   }
 
+  test("Person example") {
+    val personAST = parse(person)
+    val renderedPerson = pretty(render(personAST))
+    assert(personAST == parse(renderedPerson))    
+  }
+
   val lotto = """
 {
   "lotto":{
@@ -25,6 +31,21 @@ class ExampleSuite extends FunSuite {
       "winner-id":54,
       "numbers":[52,3,12,11,18,22]
     }]
+  }
+}
+"""
+
+  val person = """
+{ 
+  "person": {
+    "name": "Joe",
+    "age": 35,
+    "spouse": {
+      "person": {
+        "name": "Marilyn"
+        "age": 33
+      }
+    }
   }
 }
 """
