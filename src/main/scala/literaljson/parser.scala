@@ -109,28 +109,28 @@ object JsonParser {
   }
 
   private class ValStack {
-    import scala.collection.mutable.Stack
-    val stack = new Stack[MValue]()
+    import java.util.LinkedList
+    val stack = new LinkedList[MValue]()
 
-    def pop[A <: MValue] = stack.pop match {
+    def pop[A <: MValue] = stack.poll match {
       case x: A => x
       case x => error("unexpected " + x)
     }
 
-    def push(v: MValue) = stack.push(v)
+    def push(v: MValue) = stack.addFirst(v)
 
-    def peek[A <: MValue] = stack.top match {
+    def peek[A <: MValue] = stack.peek match {
       case x: A => x
       case x => error("unexpected " + x)
     }
 
-    def peekOption = if (stack isEmpty) None else Some(stack.top)
+    def peekOption = if (stack isEmpty) None else Some(stack.peek)
   }
 
   private class Parser(rest: String) {
-    import scala.collection.mutable.Stack
+    import java.util.LinkedList
 
-    val blocks = new Stack[BlockMode]()
+    val blocks = new LinkedList[BlockMode]()
     var fieldNameMode = true
     var cur = 0
 
@@ -175,18 +175,18 @@ object JsonParser {
         while (true) {
           rest.charAt(cur) match {
             case '{' =>
-              blocks.push(OBJECT)
+              blocks.addFirst(OBJECT)
               cur = cur+1
               fieldNameMode = true
               return OpenObj
             case '}' =>
-              blocks.pop
+              blocks.poll
               cur = cur+1
               return CloseObj
             case '"' =>
               val value = parseString(cur+1)
               cur = cur+value.length+2
-              if (fieldNameMode && blocks.top == OBJECT) return FieldStart(value)
+              if (fieldNameMode && blocks.peek == OBJECT) return FieldStart(value)
               else {
                 fieldNameMode = true
                 return StringVal(value)
@@ -219,12 +219,12 @@ object JsonParser {
               fieldNameMode = false
               cur = cur+1
             case '[' =>
-              blocks.push(ARRAY)
+              blocks.addFirst(ARRAY)
               cur = cur+1
               return OpenArr
             case ']' =>
               fieldNameMode = true
-              blocks.pop
+              blocks.poll
               cur = cur+1
               return CloseArr
             case c if isDelimiter(c) => cur = cur+1
