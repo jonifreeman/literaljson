@@ -12,6 +12,7 @@ object JsonParser {
   case object End extends Token
   case class StringVal(value: String) extends Token
   case class IntVal(value: BigInt) extends Token
+  case class DoubleVal(value: Double) extends Token
   case object OpenArr extends Token
   case object CloseArr extends Token
 
@@ -31,9 +32,12 @@ object JsonParser {
     def toJValue = JInt(value)
   }
 
+  case class MDouble(value: Double) extends MValue {
+    def toJValue = JDouble(value)
+  }
+
   trait MBlock[A <: MValue] {
     protected var elems = List[A]()
-
     def +=(f: A) = elems = f :: elems
   }
 
@@ -77,21 +81,15 @@ object JsonParser {
     do {
       token = p.nextToken
       token match {
-        case OpenObj => 
-          vals.push(MObject())
-        case FieldStart(name) => 
-          vals.push(MField(name, null))
-        case StringVal(x) => 
-          newValue(MString(x))
-        case IntVal(x) => 
-          newValue(MInt(x))
-        case CloseObj =>
-          closeBlock(vals.pop[MValue])          
-        case OpenArr => 
-          vals.push(MArray())
-        case CloseArr =>
-          closeBlock(vals.pop[MArray])
-        case End =>
+        case OpenObj          => vals.push(MObject())
+        case FieldStart(name) => vals.push(MField(name, null))
+        case StringVal(x)     => newValue(MString(x))
+        case IntVal(x)        => newValue(MInt(x))
+        case DoubleVal(x)     => newValue(MDouble(x))
+        case CloseObj         => closeBlock(vals.pop[MValue])          
+        case OpenArr          => vals.push(MArray())
+        case CloseArr         => closeBlock(vals.pop[MArray])
+        case End              =>
       }
     } while (token != End)
 
@@ -127,10 +125,11 @@ object JsonParser {
       def indexOfLastDigit(s: String, index: Int): Int = {
         var i = index
         while (true) {
-          if (!Character.isDigit(s.charAt(i))) return i - 1
+          val c = s.charAt(i)
+          if (!(Character.isDigit(c) || c == '.')) return i - 1
           i = i + 1
         }
-        error("expected Int")
+        error("expected Number")
       }
 
       var i = 0      
@@ -161,7 +160,7 @@ object JsonParser {
             val value = rest.substring(i, end + 1)
             rest = rest.substring(end + 1)
             fieldNameMode = true
-            return IntVal(BigInt(value))
+            if (value.contains('.')) return DoubleVal(value.toDouble) else return IntVal(BigInt(value))
           } else if (c == ':') {
             fieldNameMode = false
             i = i + 1
