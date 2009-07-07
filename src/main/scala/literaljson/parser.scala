@@ -31,20 +31,18 @@ object JsonParser {
     def toJValue = JInt(value)
   }
 
-  case class MObject() extends MValue {
-    var fields = List[MField]()
+  trait MBlock[A <: MValue] {
+    protected var elems = List[A]()
 
-    def +=(f: MField) = fields = f :: fields
-
-    def toJValue = JObject(fields.map(_.toJValue))
+    def +=(f: A) = elems = f :: elems
   }
 
-  case class MArray() extends MValue {
-    var values = List[MValue]()
+  case class MObject() extends MValue with MBlock[MField] {
+    def toJValue = JObject(elems.map(_.toJValue))
+  }
 
-    def +=(v: MValue) = values = v :: values
-
-    def toJValue = JArray(values.map(_.toJValue))
+  case class MArray() extends MValue with MBlock[MValue] {
+    def toJValue = JArray(elems.map(_.toJValue))
   }
   
   def parse(s: String): Option[JValue] = {
