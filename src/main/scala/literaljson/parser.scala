@@ -152,7 +152,7 @@ object JsonParser {
       }
 
       def parseValue = {
-        var i = cur
+        var i = cur+1
         var wasInt = true
         var doubleVal = false
         while (wasInt) {
@@ -191,7 +191,7 @@ object JsonParser {
                 fieldNameMode = true
                 return StringVal(value)
               }
-            case c if Character.isDigit(c) =>
+            case c if Character.isDigit(c) || c == '-' =>
               fieldNameMode = true
               return parseValue
             case 't' =>
