@@ -191,9 +191,6 @@ object JsonParser {
                 fieldNameMode = true
                 return StringVal(value)
               }
-            case c if Character.isDigit(c) || c == '-' =>
-              fieldNameMode = true
-              return parseValue
             case 't' =>
               fieldNameMode = true
               if (rest.charAt(cur+1) == 'r' && rest.charAt(cur+2) == 'u' && rest.charAt(cur+3) == 'e' && isDelimiter(rest.charAt(cur+4))) {
@@ -227,6 +224,9 @@ object JsonParser {
               blocks.poll
               cur = cur+1
               return CloseArr
+            case c if Character.isDigit(c) || c == '-' =>
+              fieldNameMode = true
+              return parseValue
             case c if isDelimiter(c) => cur = cur+1
             case c => error("unknown token " + c)
           }
