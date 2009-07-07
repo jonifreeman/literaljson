@@ -14,6 +14,7 @@ object JsonParser {
   case class IntVal(value: BigInt) extends Token
   case class DoubleVal(value: Double) extends Token
   case class BoolVal(value: Boolean) extends Token
+  case object NullVal extends Token
   case object OpenArr extends Token
   case object CloseArr extends Token
 
@@ -23,6 +24,10 @@ object JsonParser {
 
   case class MField(name: String, var value: MValue) extends MValue {
     def toJValue = JField(name, value.toJValue)
+  }
+
+  case object MNull extends MValue {
+    def toJValue = JNull
   }
 
   case class MString(value: String) extends MValue {
@@ -92,6 +97,7 @@ object JsonParser {
         case IntVal(x)        => newValue(MInt(x))
         case DoubleVal(x)     => newValue(MDouble(x))
         case BoolVal(x)       => newValue(MBool(x))
+        case NullVal          => newValue(MNull)
         case CloseObj         => closeBlock(vals.pop[MValue])          
         case OpenArr          => vals.push(MArray())
         case CloseArr         => closeBlock(vals.pop[MArray])
@@ -198,6 +204,12 @@ object JsonParser {
               if (rest.charAt(cur+1) == 'a' && rest.charAt(cur+2) == 'l' && rest.charAt(cur+3) == 's' && rest.charAt(cur+4) == 'e' && isDelimiter(rest.charAt(cur+5))) {
                 cur = cur+5
                 return BoolVal(false)
+              }
+              error("expected boolean")
+            case 'n' =>
+              if (rest.charAt(cur+1) == 'u' && rest.charAt(cur+2) == 'l' && rest.charAt(cur+3) == 'l' && isDelimiter(rest.charAt(cur+4))) {
+                cur = cur+4
+                return NullVal
               }
               error("expected boolean")
             case ':' =>
