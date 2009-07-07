@@ -195,23 +195,26 @@ object JsonParser {
               fieldNameMode = true
               return parseValue
             case 't' =>
+              fieldNameMode = true
               if (rest.charAt(cur+1) == 'r' && rest.charAt(cur+2) == 'u' && rest.charAt(cur+3) == 'e' && isDelimiter(rest.charAt(cur+4))) {
                 cur = cur+4
                 return BoolVal(true)
               }
               error("expected boolean")
             case 'f' =>
+              fieldNameMode = true
               if (rest.charAt(cur+1) == 'a' && rest.charAt(cur+2) == 'l' && rest.charAt(cur+3) == 's' && rest.charAt(cur+4) == 'e' && isDelimiter(rest.charAt(cur+5))) {
                 cur = cur+5
                 return BoolVal(false)
               }
               error("expected boolean")
             case 'n' =>
+              fieldNameMode = true
               if (rest.charAt(cur+1) == 'u' && rest.charAt(cur+2) == 'l' && rest.charAt(cur+3) == 'l' && isDelimiter(rest.charAt(cur+4))) {
                 cur = cur+4
                 return NullVal
               }
-              error("expected boolean")
+              error("expected null")
             case ':' =>
               fieldNameMode = false
               cur = cur+1
