@@ -13,6 +13,7 @@ object JsonParser {
   case class StringVal(value: String) extends Token
   case class IntVal(value: BigInt) extends Token
   case class DoubleVal(value: Double) extends Token
+  case class BoolVal(value: Boolean) extends Token
   case object OpenArr extends Token
   case object CloseArr extends Token
 
@@ -34,6 +35,10 @@ object JsonParser {
 
   case class MDouble(value: Double) extends MValue {
     def toJValue = JDouble(value)
+  }
+
+  case class MBool(value: Boolean) extends MValue {
+    def toJValue = JBool(value)
   }
 
   trait MBlock[A <: MValue] {
@@ -86,6 +91,7 @@ object JsonParser {
         case StringVal(x)     => newValue(MString(x))
         case IntVal(x)        => newValue(MInt(x))
         case DoubleVal(x)     => newValue(MDouble(x))
+        case BoolVal(x)       => newValue(MBool(x))
         case CloseObj         => closeBlock(vals.pop[MValue])          
         case OpenArr          => vals.push(MArray())
         case CloseArr         => closeBlock(vals.pop[MArray])
@@ -126,11 +132,13 @@ object JsonParser {
         var i = index
         while (true) {
           val c = s.charAt(i)
-          if (!(Character.isDigit(c) || c == '.')) return i - 1
-          i = i + 1
+          if (!(Character.isDigit(c) || c == '.')) return i-1
+          i = i+1
         }
         error("expected Number")
       }
+
+      def isDelimiter(c: Char) = c == ' ' || c == '\n' || c == ',' || c == '\r' || c == '}' || c == ']'
 
       var i = 0      
       try {
@@ -138,16 +146,16 @@ object JsonParser {
           rest.charAt(i) match {
             case '{' =>
               blocks.push(OBJECT)
-              rest = rest.substring(i + 1)
+              rest = rest.substring(i+1)
               fieldNameMode = true
               return OpenObj
             case '}' =>
               blocks.pop
-              rest = rest.substring(i + 1)
+              rest = rest.substring(i+1)
               return CloseObj
             case '"' =>
-              val end = rest.indexOf("\"", i + 1)
-              val value = rest.substring(i + 1, end)
+              val end = rest.indexOf("\"", i+1)
+              val value = rest.substring(i+1, end)
               rest = rest.substring(end + 1)
               if (fieldNameMode && blocks.top == OBJECT) return FieldStart(value)
               else {
@@ -156,22 +164,34 @@ object JsonParser {
               }
             case c if Character.isDigit(c) =>
               val end = indexOfLastDigit(rest, i)
-              val value = rest.substring(i, end + 1)
-              rest = rest.substring(end + 1)
+              val value = rest.substring(i, end+1)
+              rest = rest.substring(end+1)
               fieldNameMode = true
               if (value.contains('.')) return DoubleVal(value.toDouble) else return IntVal(BigInt(value))
+            case 't' =>
+              if (rest.charAt(i+1) == 'r' && rest.charAt(i+2) == 'u' && rest.charAt(i+3) == 'e' && isDelimiter(rest.charAt(i+4))) {
+                rest = rest.substring(i+4)
+                return BoolVal(true)
+              }
+              error("expected boolean")
+            case 'f' =>
+              if (rest.charAt(i+1) == 'a' && rest.charAt(i+2) == 'l' && rest.charAt(i+3) == 's' && rest.charAt(i+4) == 'e' && isDelimiter(rest.charAt(i+5))) {
+                rest = rest.substring(i+5)
+                return BoolVal(false)
+              }
+              error("expected boolean")
             case ':' =>
               fieldNameMode = false
-              i = i + 1
+              i = i+1
             case '[' =>
               blocks.push(ARRAY)
-              rest = rest.substring(i + 1)
+              rest = rest.substring(i+1)
               return OpenArr
             case ']' =>
               blocks.pop
-              rest = rest.substring(i + 1)
+              rest = rest.substring(i+1)
               return CloseArr
-            case ' ' | '\n' | ',' => i = i + 1
+            case c if isDelimiter(c) => i = i+1
             case c => error("unknown token " + c)
           }
         }
