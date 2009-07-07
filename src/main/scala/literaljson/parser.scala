@@ -55,7 +55,7 @@ object JsonParser {
   }
   
   def parse(s: String): Option[JValue] = {
-    val p = new Parser(new StringBuilder(s))
+    val p = new Parser(s)
     val vals = new ValStack
     var token: Token = null
     var roots = List[JValue]()
@@ -121,7 +121,7 @@ object JsonParser {
     def peekOption = if (stack isEmpty) None else Some(stack.top)
   }
 
-  private class Parser(rest: StringBuilder) {
+  private class Parser(rest: String) {
     import scala.collection.mutable.Stack
 
     val blocks = new Stack[BlockMode]()
@@ -129,29 +129,44 @@ object JsonParser {
     var cur = 0
 
     def nextToken: Token = {
-      def indexOfLastDigit(s: StringBuilder, index: Int): Int = {
-        var i = index
-        while (true) {
-          val c = s.charAt(i)
-          if (!(Character.isDigit(c) || c == '.')) return i-1
-          i = i+1
-        }
-        error("expected Number")
-      }
-
       def isDelimiter(c: Char) = c == ' ' || c == '\n' || c == ',' || c == '\r' || c == '\t' || c == '}' || c == ']'
 
       def parseString(startIndex: Int): String = {
         var i = startIndex
         while (true) {
           if (rest.charAt(i) == '\\') {
-            if (rest.charAt(i+1) == '"') rest.deleteCharAt(i)
+/*
+            rest.charAt(i+1) match {
+              case '"' | '\\'  | 't' | 'r' => rest.deleteCharAt(i)
+              case _ => 
+            }
+            */
           } else if (rest.charAt(i) == '"') {
             return rest.substring(startIndex, i)
           }
           i = i+1
         }
         error("can't happen")
+      }
+
+      def parseValue = {
+        var i = cur
+        var wasInt = true
+        var doubleVal = false
+        while (wasInt) {
+          val c = rest.charAt(i)
+          if (c == '.') {
+            doubleVal = true
+            i = i+1
+          } else if (!(Character.isDigit(c) || c == '.')) {
+            wasInt = false
+          } else {
+            i = i+1
+          }
+        }
+        val value = rest.substring(cur, i)
+        cur = i
+        if (doubleVal) DoubleVal(value.toDouble) else IntVal(BigInt(value))
       }
 
       try {
@@ -175,11 +190,8 @@ object JsonParser {
                 return StringVal(value)
               }
             case c if Character.isDigit(c) =>
-              val end = indexOfLastDigit(rest, cur)
-              val value = rest.substring(cur, end+1)
-              cur = end+1
               fieldNameMode = true
-              if (value.contains('.')) return DoubleVal(value.toDouble) else return IntVal(BigInt(value))
+              return parseValue
             case 't' =>
               if (rest.charAt(cur+1) == 'r' && rest.charAt(cur+2) == 'u' && rest.charAt(cur+3) == 'e' && isDelimiter(rest.charAt(cur+4))) {
                 cur = cur+4
