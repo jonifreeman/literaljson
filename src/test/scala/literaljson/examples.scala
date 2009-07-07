@@ -23,6 +23,11 @@ class ExampleSuite extends FunSuite {
     assert(compact(render(personAST \ "name")) == """{"name":"Joe"}""")
   }
 
+  test("Quoted example") {
+    val quotedAST = parse(quoted)
+    expect(compact(render(quotedAST))) ("""{"foo":"\n\t\r"}""")
+  }
+
   val lotto = """
 {
   "lotto":{
@@ -66,10 +71,6 @@ class ExampleSuite extends FunSuite {
     )
    )
 
-  val quoted = """
-{
-  "foo" : "\n\t\r\""
-}
-"""
+  val quoted = "{ \"foo\" : \"\n\t\r\" }"
 }
 

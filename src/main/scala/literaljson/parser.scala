@@ -133,17 +133,13 @@ object JsonParser {
 
       def parseString(startIndex: Int): String = {
         var i = startIndex
+        val s = new StringBuilder
         while (true) {
-          if (rest.charAt(i) == '\\') {
-/*
-            rest.charAt(i+1) match {
-              case '"' | '\\'  | 't' | 'r' => rest.deleteCharAt(i)
-              case _ => 
-            }
-            */
-          } else if (rest.charAt(i) == '"') {
-            return rest.substring(startIndex, i)
+          val c = rest.charAt(i)
+          if (c == '"') {
+            return s.toString
           }
+          s.append(c)
           i = i+1
         }
         error("can't happen")
