@@ -17,6 +17,7 @@ class ExampleSuite extends FunSuite {
     val personAST = parse(person)
     val renderedPerson = pretty(render(personAST))
     assert(personAST == parse(renderedPerson))
+    assert(render(personAST) == render(personDSL))
 
     assert(compact(render(personAST \\ "name")) == """{"name":"Joe","name":"Marilyn"}""")
     assert(compact(render(personAST \ "name")) == """{"name":"Joe"}""")
@@ -50,6 +51,24 @@ class ExampleSuite extends FunSuite {
       }
     }
   }
+}
+"""
+
+  val personDSL = 
+    ( "person" ->
+     ("name" -> "Joe") ~
+     ("age" -> 35) ~
+     ("spouse" -> 
+      ("person" -> 
+       ("name" -> "Marilyn") ~
+       ("age" -> 33)
+     )
+    )
+   )
+
+  val quoted = """
+{
+  "foo" : "\n\t\r\""
 }
 """
 }
