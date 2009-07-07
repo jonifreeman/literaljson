@@ -10,13 +10,16 @@ class ExampleSuite extends FunSuite {
   test("Lotto example") {
     val lottoAST = parse(lotto)
     val renderedLotto = compact(render(lottoAST))
-    assert(lottoAST == parse(renderedLotto))    
+    assert(lottoAST == parse(renderedLotto))
   }
 
   test("Person example") {
     val personAST = parse(person)
     val renderedPerson = pretty(render(personAST))
-    assert(personAST == parse(renderedPerson))    
+    assert(personAST == parse(renderedPerson))
+
+    assert(compact(render(personAST \\ "name")) == """{"name":"Joe","name":"Marilyn"}""")
+    assert(compact(render(personAST \ "name")) == """{"name":"Joe"}""")
   }
 
   val lotto = """
