@@ -223,6 +223,7 @@ object JsonParser {
               cur = cur+1
               return OpenArr
             case ']' =>
+              fieldNameMode = true
               blocks.pop
               cur = cur+1
               return CloseArr
