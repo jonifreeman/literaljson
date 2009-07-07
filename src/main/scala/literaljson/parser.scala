@@ -55,7 +55,7 @@ object JsonParser {
   }
   
   def parse(s: String): Option[JValue] = {
-    val p = new Parser(s)
+    val p = new Parser(new StringBuilder(s))
     val vals = new ValStack
     var token: Token = null
     var roots = List[JValue]()
@@ -121,14 +121,15 @@ object JsonParser {
     def peekOption = if (stack isEmpty) None else Some(stack.top)
   }
 
-  private class Parser(private var rest: String) {
+  private class Parser(rest: StringBuilder) {
     import scala.collection.mutable.Stack
 
     val blocks = new Stack[BlockMode]()
     var fieldNameMode = true
+    var cur = 0
 
     def nextToken: Token = {
-      def indexOfLastDigit(s: String, index: Int): Int = {
+      def indexOfLastDigit(s: StringBuilder, index: Int): Int = {
         var i = index
         while (true) {
           val c = s.charAt(i)
@@ -138,60 +139,71 @@ object JsonParser {
         error("expected Number")
       }
 
-      def isDelimiter(c: Char) = c == ' ' || c == '\n' || c == ',' || c == '\r' || c == '}' || c == ']'
+      def isDelimiter(c: Char) = c == ' ' || c == '\n' || c == ',' || c == '\r' || c == '\t' || c == '}' || c == ']'
 
-      var i = 0      
+      def parseString(startIndex: Int): String = {
+        var i = startIndex
+        while (true) {
+          if (rest.charAt(i) == '\\') {
+            if (rest.charAt(i+1) == '"') rest.deleteCharAt(i)
+          } else if (rest.charAt(i) == '"') {
+            return rest.substring(startIndex, i)
+          }
+          i = i+1
+        }
+        error("can't happen")
+      }
+
       try {
         while (true) {
-          rest.charAt(i) match {
+          rest.charAt(cur) match {
             case '{' =>
               blocks.push(OBJECT)
-              rest = rest.substring(i+1)
+              cur = cur+1
               fieldNameMode = true
               return OpenObj
             case '}' =>
               blocks.pop
-              rest = rest.substring(i+1)
+              cur = cur+1
               return CloseObj
             case '"' =>
-              val end = rest.indexOf("\"", i+1)
-              val value = rest.substring(i+1, end)
-              rest = rest.substring(end + 1)
+              val value = parseString(cur+1)
+              cur = cur+value.length+2
               if (fieldNameMode && blocks.top == OBJECT) return FieldStart(value)
               else {
                 fieldNameMode = true
                 return StringVal(value)
               }
             case c if Character.isDigit(c) =>
-              val end = indexOfLastDigit(rest, i)
-              val value = rest.substring(i, end+1)
-              rest = rest.substring(end+1)
+              val end = indexOfLastDigit(rest, cur)
+              val value = rest.substring(cur, end+1)
+              cur = end+1
               fieldNameMode = true
               if (value.contains('.')) return DoubleVal(value.toDouble) else return IntVal(BigInt(value))
             case 't' =>
-              if (rest.charAt(i+1) == 'r' && rest.charAt(i+2) == 'u' && rest.charAt(i+3) == 'e' && isDelimiter(rest.charAt(i+4))) {
-                rest = rest.substring(i+4)
+              if (rest.charAt(cur+1) == 'r' && rest.charAt(cur+2) == 'u' && rest.charAt(cur+3) == 'e' && isDelimiter(rest.charAt(cur+4))) {
+                cur = cur+4
                 return BoolVal(true)
               }
               error("expected boolean")
             case 'f' =>
-              if (rest.charAt(i+1) == 'a' && rest.charAt(i+2) == 'l' && rest.charAt(i+3) == 's' && rest.charAt(i+4) == 'e' && isDelimiter(rest.charAt(i+5))) {
-                rest = rest.substring(i+5)
+              if (rest.charAt(cur+1) == 'a' && rest.charAt(cur+2) == 'l' && rest.charAt(cur+3) == 's' && rest.charAt(cur+4) == 'e' && isDelimiter(rest.charAt(cur+5))) {
+                cur = cur+5
                 return BoolVal(false)
               }
               error("expected boolean")
             case ':' =>
               fieldNameMode = false
-              i = i+1
+              cur = cur+1
             case '[' =>
               blocks.push(ARRAY)
-              rest = rest.substring(i+1)
+              cur = cur+1
               return OpenArr
             case ']' =>
               blocks.pop
-              rest = rest.substring(i+1)
+              cur = cur+1
               return CloseArr
-            case c if isDelimiter(c) => i = i+1
+            case c if isDelimiter(c) => cur = cur+1
             case c => error("unknown token " + c)
           }
         }
