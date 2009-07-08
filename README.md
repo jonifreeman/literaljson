@@ -1,4 +1,4 @@
-Literaljson contains parsing and formatting utilities for JSON.
+Literaljson: parsing and formatting utilities for JSON.
 
 DSL rules
 ---------
@@ -169,10 +169,11 @@ Json AST can be queried using XPath like functions. Following REPL session shows
     res7: literaljson.JsonAST.JValue#Values = Map(person -> Map(name -> Joe, age -> 35, spouse -> Map(person -> Map(name -> Marilyn, age -> 33))))
 
 
-Compile
--------
+Compile & package
+-----------------
 
     ./sbt compile
+    ./sbt package
 
 Kudos
 -----
