@@ -11,6 +11,7 @@ Facts:
 * Scala 2.7.4
 * Java HotSpot(TM) Server VM (build 11.0-b15, mixed mode)
 
+
     Scala std	  175215ms
     Jackson       896ms
     Literaljson	  867ms
