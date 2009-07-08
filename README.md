@@ -1,4 +1,4 @@
-LiteralJson contains formatting utilities for JSON.
+Literaljson contains parsing and formatting utilities for JSON.
 
 DSL rules
 ---------
@@ -90,11 +90,19 @@ Example produces following pretty printed JSON. Notice that draw-date field is n
       }
     }
 
+Parsing
+-------
+
+Any valid json can be parsed into internal AST format.
+
+    scala> import literaljson.JsonParser._
+    scala> parse(""" { "numbers" : [1, 2, 3, 4] } """)
+    res0: Option[literaljson.JsonAST.JValue] = Some(JObject(List(JField(numbers,JArray(List(JInt(1), JInt(2), JInt(3), JInt(4)))))))
+
 Queries
 -------
 
-Json AST can be queried using XPath like functions (note, this is not too useful until we have a parser).
-Following REPL session shows the usage of '\\', '\\\\', 'find' and 'filter' functions. 
+Json AST can be queried using XPath like functions. Following REPL session shows the usage of '\\', '\\\\', 'find', 'filter' and 'values' functions. 
 
     The example json is:
 
@@ -155,6 +163,10 @@ Following REPL session shows the usage of '\\', '\\\\', 'find' and 'filter' func
              case _ => false
            }
     res6: List[literaljson.JsonAST.JValue] = List(JField(name,JString(Joe)), JField(name,JString(Marilyn)))
+
+    scala> json.values                                
+    res7: literaljson.JsonAST.JValue#Values = Map(person -> Map(name -> Joe, age -> 35, spouse -> Map(person -> Map(name -> Marilyn, age -> 33))))
+
 
 TODO + ideas
 ------------
