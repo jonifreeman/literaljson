@@ -136,7 +136,7 @@ object JsonParser {
     def peekOption = if (stack isEmpty) None else Some(stack.peek)
   }
 
-  private class Parser(rest: String) {
+  private class Parser(buf: String) {
     import java.util.LinkedList
 
     val blocks = new LinkedList[BlockMode]()
@@ -150,7 +150,7 @@ object JsonParser {
         cur = cur+1
         val s = new StringBuilder
         while (true) {
-          var c = rest.charAt(cur)
+          var c = buf.charAt(cur)
           if (c == '"') {
             cur = cur+1
             return s.toString
@@ -158,7 +158,7 @@ object JsonParser {
 
           c = if (c == '\\') {
             cur = cur+1
-            rest.charAt(cur) match {
+            buf.charAt(cur) match {
               case '"' => '"'
               case 'n' => '\n'
               case 't' => '\t'
@@ -177,7 +177,7 @@ object JsonParser {
         var wasInt = true
         var doubleVal = false
         while (wasInt) {
-          val c = rest.charAt(i)
+          val c = buf.charAt(i)
           if (c == '.') {
             doubleVal = true
             i = i+1
@@ -187,14 +187,14 @@ object JsonParser {
             i = i+1
           }
         }
-        val value = rest.substring(cur, i)
+        val value = buf.substring(cur, i)
         cur = i
         if (doubleVal) DoubleVal(value.toDouble) else IntVal(BigInt(value))
       }
 
       try {
         while (true) {
-          rest.charAt(cur) match {
+          buf.charAt(cur) match {
             case '{' =>
               blocks.addFirst(OBJECT)
               cur = cur+1
@@ -213,21 +213,21 @@ object JsonParser {
               }
             case 't' =>
               fieldNameMode = true
-              if (rest.charAt(cur+1) == 'r' && rest.charAt(cur+2) == 'u' && rest.charAt(cur+3) == 'e' && isDelimiter(rest.charAt(cur+4))) {
+              if (buf.charAt(cur+1) == 'r' && buf.charAt(cur+2) == 'u' && buf.charAt(cur+3) == 'e' && isDelimiter(buf.charAt(cur+4))) {
                 cur = cur+4
                 return BoolVal(true)
               }
               error("expected boolean")
             case 'f' =>
               fieldNameMode = true
-              if (rest.charAt(cur+1) == 'a' && rest.charAt(cur+2) == 'l' && rest.charAt(cur+3) == 's' && rest.charAt(cur+4) == 'e' && isDelimiter(rest.charAt(cur+5))) {
+              if (buf.charAt(cur+1) == 'a' && buf.charAt(cur+2) == 'l' && buf.charAt(cur+3) == 's' && buf.charAt(cur+4) == 'e' && isDelimiter(buf.charAt(cur+5))) {
                 cur = cur+5
                 return BoolVal(false)
               }
               error("expected boolean")
             case 'n' =>
               fieldNameMode = true
-              if (rest.charAt(cur+1) == 'u' && rest.charAt(cur+2) == 'l' && rest.charAt(cur+3) == 'l' && isDelimiter(rest.charAt(cur+4))) {
+              if (buf.charAt(cur+1) == 'u' && buf.charAt(cur+2) == 'l' && buf.charAt(cur+3) == 'l' && isDelimiter(buf.charAt(cur+4))) {
                 cur = cur+4
                 return NullVal
               }
@@ -251,7 +251,7 @@ object JsonParser {
             case c => error("unknown token " + c)
           }
         }
-        error("parse error " + rest)
+        error("parse error " + buf)
       } catch {
         case e: StringIndexOutOfBoundsException => End
       }
