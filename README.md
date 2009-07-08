@@ -175,6 +175,11 @@ Compile & package
     ./sbt compile
     ./sbt package
 
+Versions
+--------
+
+0.1 http://github.com/jonifreeman/literaljson/tree/literaljson-0.1
+
 Kudos
 -----
 
