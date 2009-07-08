@@ -132,21 +132,31 @@ object JsonParser {
 
     val blocks = new LinkedList[BlockMode]()
     var fieldNameMode = true
-    var cur = 0
+    var cur = 0 // Pointer which points current parsing location
 
     def nextToken: Token = {
       def isDelimiter(c: Char) = c == ' ' || c == '\n' || c == ',' || c == '\r' || c == '\t' || c == '}' || c == ']'
 
-      def parseString(startIndex: Int): String = {
-        var i = startIndex
+      def parseString: String = {
+        cur = cur+1
         val s = new StringBuilder
         while (true) {
-          val c = rest.charAt(i)
+          var c = rest.charAt(cur)
           if (c == '"') {
+            cur = cur+1
             return s.toString
           }
+
+          c = if (c == '\\') {
+            rest.charAt(cur+1) match {
+              case '"' => 
+                cur = cur+1
+                '"'
+              case _ => '\\'
+            }
+          } else c
           s.append(c)
-          i = i+1
+          cur = cur+1
         }
         error("can't happen")
       }
@@ -184,8 +194,7 @@ object JsonParser {
               cur = cur+1
               return CloseObj
             case '"' =>
-              val value = parseString(cur+1)
-              cur = cur+value.length+2
+              val value = parseString
               if (fieldNameMode && blocks.peek == OBJECT) return FieldStart(value)
               else {
                 fieldNameMode = true

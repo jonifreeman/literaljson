@@ -25,7 +25,12 @@ class ExampleSuite extends FunSuite {
 
   test("Quoted example") {
     val quotedAST = parse(quoted)
-    expect(compact(render(quotedAST))) ("""{"foo":"\n\t\r"}""")
+    // FIXME simplify
+    expect (Some(JArray(List(JString("foo \" bar"))))) { (quotedAST find {
+      case JArray(x :: Nil) => x == JString("foo \" bar")
+      case _ => false
+    }) }
+//    expect(compact(render(quotedAST))) ("""{"foo":"\n\t"\r"}""")
   }
 
   val lotto = """
@@ -71,6 +76,7 @@ class ExampleSuite extends FunSuite {
     )
    )
 
-  val quoted = "{ \"foo\" : \"\n\t\r\" }"
+//  val quoted = """{ "foo" : "x\n\t\"\r" }"""
+  val quoted = """["foo \" bar"]"""
 }
 
