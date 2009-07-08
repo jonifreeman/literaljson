@@ -72,7 +72,7 @@ object JsonParser {
     val p = new Parser(s)
     val vals = new ValStack
     var token: Token = null
-    var roots = List[JValue]()
+    var root: Option[JValue] = None
 
     def closeBlock(v: MValue) {
       vals.peekOption match {
@@ -82,7 +82,7 @@ object JsonParser {
           vals.peek[MObject] += field
         case Some(o: MObject) => o += v.asInstanceOf[MField]
         case Some(a: MArray) => a += v
-        case None => roots = v.toJValue :: roots
+        case None => root = Some(v.toJValue)
       }
     }
 
@@ -114,7 +114,7 @@ object JsonParser {
       }
     } while (token != End)
 
-    roots.head
+    root.get
   }
 
   private class ValStack {
