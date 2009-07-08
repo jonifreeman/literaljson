@@ -148,10 +148,12 @@ object JsonParser {
           }
 
           c = if (c == '\\') {
-            rest.charAt(cur+1) match {
-              case '"' => 
-                cur = cur+1
-                '"'
+            cur = cur+1
+            rest.charAt(cur) match {
+              case '"' => '"'
+              case 'n' => '\n'
+              case 't' => '\t'
+              case 'r' => '\r'
               case _ => '\\'
             }
           } else c

@@ -25,8 +25,7 @@ class ExampleSuite extends FunSuite {
 
   test("Quoted example") {
     val quotedAST = parse(quoted)
-    expect (List("foo \" bar")) { quotedAST.values }
-//    expect(compact(render(quotedAST))) ("""{"foo":"\n\t"\r"}""")
+    expect (List("foo \" \n \t \r bar")) { quotedAST.values }
   }
 
   val lotto = """
@@ -72,7 +71,6 @@ class ExampleSuite extends FunSuite {
     )
    )
 
-//  val quoted = """{ "foo" : "x\n\t\"\r" }"""
-  val quoted = """["foo \" bar"]"""
+  val quoted = """["foo \" \n \t \r bar"]"""
 }
 
