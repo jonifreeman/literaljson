@@ -5,6 +5,8 @@ object JsonAST {
   import scala.text.Document._
 
   sealed abstract class JValue {
+    type Values
+
     def \(nameToFind: String): JObject = {
       def find = children.flatMap {
         case JObject(l) => l.filter {
@@ -27,6 +29,8 @@ object JsonAST {
       }
       JObject(find(this))
     }
+
+    def values: Values
 
     def children = this match {
       case JObject(l) => l.map(_.value)
@@ -60,15 +64,42 @@ object JsonAST {
     }
   }
 
-  case object JNothing extends JValue
-  case object JNull extends JValue
-  case class JString(s: String) extends JValue
-  case class JDouble(num: Double) extends JValue
-  case class JInt(num: BigInt) extends JValue
-  case class JBool(value: Boolean) extends JValue
-  case class JField(name: String, value: JValue) extends JValue
-  case class JObject(obj: List[JField]) extends JValue
-  case class JArray(arr: List[JValue]) extends JValue
+  case object JNothing extends JValue {
+    type Values = Nothing
+    def values = error("nothing contains no values")
+  }
+  case object JNull extends JValue {
+    type Values = Null
+    def values = null
+  }
+  case class JString(s: String) extends JValue {
+    type Values = String
+    def values = s
+  }
+  case class JDouble(num: Double) extends JValue {
+    type Values = Double
+    def values = num
+  }
+  case class JInt(num: BigInt) extends JValue {
+    type Values = BigInt
+    def values = num
+  }
+  case class JBool(value: Boolean) extends JValue {
+    type Values = Boolean
+    def values = value
+  }
+  case class JField(name: String, value: JValue) extends JValue {
+    type Values = (String, value.Values)
+    def values = (name, value.values)
+  }
+  case class JObject(obj: List[JField]) extends JValue {
+    type Values = Map[String, Any]
+    def values = Map() ++ obj.map(_.values.asInstanceOf[(String, Any)]) // FIXME compiler fails if cast is removed
+  }
+  case class JArray(arr: List[JValue]) extends JValue {
+    type Values = List[Any]
+    def values = arr.map(_.values)
+  }
 
   def render(value: JValue): Document = value match {
     case JBool(true)  => text("true")
