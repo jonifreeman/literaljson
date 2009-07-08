@@ -9,7 +9,9 @@ Facts:
 * Ubuntu 8.10
 * Lenovo T60p
 * Scala 2.7.4
-* Java HotSpot(TM) Server VM (build 11.0-b15, mixed mode)
+* java version "1.6.0_10"
+  Java(TM) SE Runtime Environment (build 1.6.0_10-b33)
+  Java HotSpot(TM) Server VM (build 11.0-b15, mixed mode)
 * Exec: scala jsonbench
 
 Parsing 50 000 json documents:
