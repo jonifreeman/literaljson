@@ -168,11 +168,6 @@ Json AST can be queried using XPath like functions. Following REPL session shows
     res7: literaljson.JsonAST.JValue#Values = Map(person -> Map(name -> Joe, age -> 35, spouse -> Map(person -> Map(name -> Marilyn, age -> 33))))
 
 
-TODO + ideas
-------------
-
-* Add parser which parses to AST.
-
 Compile
 -------
 
