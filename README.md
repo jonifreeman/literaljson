@@ -97,7 +97,8 @@ Any valid json can be parsed into internal AST format.
 
     scala> import literaljson.JsonParser._
     scala> parse(""" { "numbers" : [1, 2, 3, 4] } """)
-    res0: Option[literaljson.JsonAST.JValue] = Some(JObject(List(JField(numbers,JArray(List(JInt(1), JInt(2), JInt(3), JInt(4)))))))
+    res0: Either[literaljson.JsonParser.ParseError,literaljson.JsonAST.JValue] = 
+          Right(JObject(List(JField(numbers,JArray(List(JInt(1), JInt(2), JInt(3), JInt(4)))))))
 
 Queries
 -------
@@ -121,8 +122,8 @@ Json AST can be queried using XPath like functions. Following REPL session shows
 
     Translated to DSL syntax:
 
-    scala> import literaljson.AST._
-    scala> import literaljson.DSL._
+    scala> import literaljson.JsonAST._
+    scala> import literaljson.JsonDSL._
 
     scala> val json = 
       ("person" ->
@@ -164,7 +165,7 @@ Json AST can be queried using XPath like functions. Following REPL session shows
            }
     res6: List[literaljson.JsonAST.JValue] = List(JField(name,JString(Joe)), JField(name,JString(Marilyn)))
 
-    scala> json.values                                
+    scala> json.values
     res7: literaljson.JsonAST.JValue#Values = Map(person -> Map(name -> Joe, age -> 35, spouse -> Map(person -> Map(name -> Marilyn, age -> 33))))
 
 

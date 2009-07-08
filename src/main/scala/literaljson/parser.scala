@@ -5,6 +5,8 @@ package literaljson
 object JsonParser {
   import JsonAST._
 
+  case class ParseError(message: String)
+
   sealed abstract class Token
   case object OpenObj extends Token
   case object CloseObj extends Token
@@ -59,7 +61,14 @@ object JsonParser {
     def toJValue = JArray(elems.map(_.toJValue).reverse)
   }
   
-  def parse(s: String): Option[JValue] = {
+  def parse(s: String): Either[ParseError, JValue] = 
+    try {
+      Right(parse0(s))
+    } catch {
+      case e: Exception => Left(ParseError(e.getMessage))
+    }
+
+  private def parse0(s: String): JValue = {
     val p = new Parser(s)
     val vals = new ValStack
     var token: Token = null
@@ -105,7 +114,7 @@ object JsonParser {
       }
     } while (token != End)
 
-    Some(roots.head) // FIXME
+    roots.head
   }
 
   private class ValStack {

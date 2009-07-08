@@ -8,24 +8,31 @@ class ExampleSuite extends FunSuite {
   import JsonParser._
 
   test("Lotto example") {
-    val lottoAST = parse(lotto)
-    val renderedLotto = compact(render(lottoAST))
-    assert(lottoAST == parse(renderedLotto))
+    parse(lotto) match {
+      case Right(lottoAST) =>
+        val renderedLotto = compact(render(lottoAST))
+        expect (lottoAST) { parse(renderedLotto).right.get }
+      case Left(err) => fail(err.message)
+    }
   }
 
   test("Person example") {
-    val personAST = parse(person)
-    val renderedPerson = pretty(render(personAST))
-    assert(personAST == parse(renderedPerson))
-    assert(render(personAST) == render(personDSL))
-
-    assert(compact(render(personAST \\ "name")) == """{"name":"Joe","name":"Marilyn"}""")
-    assert(compact(render(personAST \ "name")) == """{"name":"Joe"}""")
+    parse(person) match {
+      case Right(personAST) =>
+        val renderedPerson = pretty(render(personAST))
+        expect (personAST) { parse(renderedPerson).right.get }
+        expect (render(personAST)) { render(personDSL) }
+        expect (compact(render(personAST \\ "name"))) { """{"name":"Joe","name":"Marilyn"}""" }
+        expect (compact(render(personAST \ "name"))) { """{"name":"Joe"}""" }
+      case Left(err) => fail(err.message)
+    }
   }
 
   test("Quoted example") {
-    val quotedAST = parse(quoted)
-    expect (List("foo \" \n \t \r bar")) { quotedAST.values }
+    parse(quoted) match {
+      case Right(quotedAST) => expect (List("foo \" \n \t \r bar")) { quotedAST.values }
+      case Left(err) => fail(err.message)
+    }
   }
 
   val lotto = """
