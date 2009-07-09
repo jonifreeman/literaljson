@@ -144,7 +144,7 @@ object JsonParser {
     var cur = 0 // Pointer which points current parsing location
 
     def nextToken: Token = {
-      def isDelimiter(c: Char) = c == ' ' || c == '\n' || c == ',' || c == '\r' || c == '\t' || c == '}' || c == ']'
+      val isDelimiter = Set(' ', '\n', ',', '\r', '\t', '}', ']')
 
       def parseString: String = {
         cur = cur+1
