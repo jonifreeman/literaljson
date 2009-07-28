@@ -23,7 +23,15 @@ class ExampleSuite extends FunSuite {
         expect (personAST) { parse(renderedPerson).right.get }
         expect (render(personAST)) { render(personDSL) }
         expect (compact(render(personAST \\ "name"))) { """{"name":"Joe","name":"Marilyn"}""" }
-        expect (compact(render(personAST \ "name"))) { """{"name":"Joe"}""" }
+        expect (compact(render(personAST \ "person" \ "name"))) { "\"name\":\"Joe\"" }
+      case Left(err) => fail(err.message)
+    }
+  }
+
+  test("Object array example") {
+    parse(objArray) match {
+      case Right(objArrayAST) =>
+        expect (compact(render(objArrayAST \ "children" \ "name"))) { """["name":"Mary","name":"Mazy"]""" }
       case Left(err) => fail(err.message)
     }
   }
@@ -67,16 +75,36 @@ class ExampleSuite extends FunSuite {
 """
 
   val personDSL = 
-    ( "person" ->
-     ("name" -> "Joe") ~
-     ("age" -> 35) ~
-     ("spouse" -> 
-      ("person" -> 
-       ("name" -> "Marilyn") ~
-       ("age" -> 33)
-     )
+    ("person" ->
+      ("name" -> "Joe") ~
+      ("age" -> 35) ~
+      ("spouse" -> 
+        ("person" -> 
+          ("name" -> "Marilyn") ~
+          ("age" -> 33)
+        )
+      )
     )
-   )
+
+  val objArray = 
+"""
+{ "name": "joe",
+  "address": {
+    "street": "kjh",
+    "city": "Helsinki"
+  },
+  "children": [
+    {
+      "name": "Mary",
+      "age": 5
+    },
+    {
+      "name": "Mazy",
+      "age": 3
+    }
+  ]
+}
+"""
 
   val quoted = """["foo \" \n \t \r bar"]"""
 }

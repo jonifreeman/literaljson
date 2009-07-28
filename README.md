@@ -147,11 +147,11 @@ Json AST can be queried using XPath like functions. Following REPL session shows
     scala> compact(render(json \\ "name"))
     res2: String = {"name":"Joe","name":"Marilyn"}
 
-    scala> compact(render(json \ "name"))
-    res3: String = {"name":"Joe"}
+    scala> compact(render(json \ "person" \ "name"))
+    res3: String = "name":"Joe"
 
-    scala> compact(render(json \ "spouse" \ "person" \ "name"))
-    res4: String = {"name":"Marilyn"}
+    scala> compact(render(json \ "person" \ "spouse" \ "person" \ "name"))
+    res4: String = "name":"Marilyn"
 
     scala> json find {
              case JField("name", _) => true

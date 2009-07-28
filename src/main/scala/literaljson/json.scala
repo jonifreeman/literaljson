@@ -7,15 +7,21 @@ object JsonAST {
   sealed abstract class JValue {
     type Values
 
-    def \(nameToFind: String): JObject = {
-      def find = children.flatMap {
+    def \(nameToFind: String): JValue = {
+      def find(xs: List[JValue]): List[JValue] = xs.flatMap {
         case JObject(l) => l.filter {
-          case field @ JField(name, value) if name == nameToFind => true
+          case JField(name, value) if name == nameToFind => true
           case _ => false
         }
+        case JArray(l) => find(l)
+        case field @ JField(name, value) if name == nameToFind => field :: Nil
         case _ => Nil
       }
-      JObject(find)
+      find(children) match {
+        case Nil => JNothing
+        case x :: Nil => x
+        case x => JArray(x)
+      }
     }
 
     // FIXME this must be tail recursive
@@ -33,7 +39,9 @@ object JsonAST {
     def values: Values
 
     def children = this match {
-      case JObject(l) => l.map(_.value)
+      case JObject(l) => l
+      case JArray(l) => l
+      case JField(n, v) => List(v)
       case _ => Nil
     }
 
