@@ -32,6 +32,8 @@ class ExampleSuite extends FunSuite {
     parse(objArray) match {
       case Right(objArrayAST) =>
         expect (compact(render(objArrayAST \ "children" \ "name"))) { """["name":"Mary","name":"Mazy"]""" }
+        expect (compact(render((objArrayAST \ "children")(0) \ "name"))) { "\"name\":\"Mary\"" }
+        expect (compact(render((objArrayAST \ "children")(1) \ "name"))) { "\"name\":\"Mazy\"" }
       case Left(err) => fail(err.message)
     }
   }

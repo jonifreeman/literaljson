@@ -168,6 +168,28 @@ Json AST can be queried using XPath like functions. Following REPL session shows
     scala> json.values
     res7: literaljson.JsonAST.JValue#Values = Map(person -> Map(name -> Joe, age -> 35, spouse -> Map(person -> Map(name -> Marilyn, age -> 33))))
 
+Indexed path expressions work too.
+
+    scala> val json = parse("""
+             { "name": "joe",
+               "children": [
+                 {
+                   "name": "Mary",
+                   "age": 5
+                 },
+                 {
+                   "name": "Mazy",
+                   "age": 3
+                 }
+               ]
+             }
+           """).right.get
+
+    scala> (json \ "children")(0)
+    res0: literaljson.JsonAST.JValue = JObject(List(JField(name,JString(Mary)), JField(age,JInt(5))))
+
+    scala> (json \ "children")(1) \ "name"
+    res1: literaljson.JsonAST.JValue = JField(name,JString(Mazy))
 
 Compile & package
 -----------------
