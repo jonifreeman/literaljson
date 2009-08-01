@@ -1,5 +1,6 @@
 package literaljson 
 
+import scala.reflect.Manifest
 import JsonAST._
 
 object Extraction {
@@ -12,15 +13,16 @@ object Extraction {
 //  case class ListConstructor(constructors: List[Constructor]) extends Mapping
 
   // FIXME can this be JValue?
-  def extract[A](obj: JObject)/*(implicit mf: Manifest[A])*/ = {
-    val mapping = memoize(obj)
-    
+  def extract[A](obj: JObject)(implicit mf: Manifest[A]) = {
+    val mapping = memoize(mf.erasure)
+    println(mapping)
+
     def newInstance(classname: String, args: List[Any]) = {
       val clazz = Class.forName(classname)
-      val argTypes = args.map { _ match {
+      val argTypes = args.map {
         case x: List[_] => classOf[List[_]]
         case x => x.asInstanceOf[AnyRef].getClass
-      }}
+      }
       clazz.getConstructor(argTypes.toArray: _*).newInstance(args.map(_.asInstanceOf[AnyRef]).toArray: _*)
     }
 
@@ -33,8 +35,16 @@ object Extraction {
     build(mapping, Nil).head
   }
 
-  def memoize(obj: JObject) = 
-    Constructor("literaljson.Person", List(Value("name" :: Nil), Constructor("literaljson.Address", List(Value("address" :: "street" :: Nil), Value("address" :: "city" :: Nil)))))
+  // FIXME memoize
+  def memoize(clazz: Class[_]) = {
+    def makeMapping(clazz: Class[_], path: List[String]): Mapping = 
+      Constructor(clazz.getName, clazz.getDeclaredFields.map { x =>
+        if (x.getType == classOf[String]) Value(path + x.getName) // FIXME + is deprecated
+        else makeMapping(x.getType, path + x.getName) // FIXME + is deprecated
+      }.toList.reverse)
+    
+    makeMapping(clazz, Nil)
+  }
 }
 
 case class Person(name: String, address: Address/*, children: List[Child]*/)
