@@ -192,69 +192,66 @@ object JsonParser {
         if (doubleVal) DoubleVal(value.toDouble) else IntVal(BigInt(value))
       }
 
-      try {
-        while (true) {
-          buf.charAt(cur) match {
-            case '{' =>
-              blocks.addFirst(OBJECT)
-              cur = cur+1
+      val len = buf.length
+      while (cur < len) {
+        buf.charAt(cur) match {
+          case '{' =>
+            blocks.addFirst(OBJECT)
+            cur = cur+1
+            fieldNameMode = true
+            return OpenObj
+          case '}' =>
+            blocks.poll
+            cur = cur+1
+            return CloseObj
+          case '"' =>
+            val value = parseString
+            if (fieldNameMode && blocks.peek == OBJECT) return FieldStart(value)
+            else {
               fieldNameMode = true
-              return OpenObj
-            case '}' =>
-              blocks.poll
-              cur = cur+1
-              return CloseObj
-            case '"' =>
-              val value = parseString
-              if (fieldNameMode && blocks.peek == OBJECT) return FieldStart(value)
-              else {
-                fieldNameMode = true
-                return StringVal(value)
-              }
-            case 't' =>
-              fieldNameMode = true
-              if (buf.charAt(cur+1) == 'r' && buf.charAt(cur+2) == 'u' && buf.charAt(cur+3) == 'e' && isDelimiter(buf.charAt(cur+4))) {
-                cur = cur+4
-                return BoolVal(true)
-              }
-              error("expected boolean")
-            case 'f' =>
-              fieldNameMode = true
-              if (buf.charAt(cur+1) == 'a' && buf.charAt(cur+2) == 'l' && buf.charAt(cur+3) == 's' && buf.charAt(cur+4) == 'e' && isDelimiter(buf.charAt(cur+5))) {
-                cur = cur+5
-                return BoolVal(false)
-              }
-              error("expected boolean")
-            case 'n' =>
-              fieldNameMode = true
-              if (buf.charAt(cur+1) == 'u' && buf.charAt(cur+2) == 'l' && buf.charAt(cur+3) == 'l' && isDelimiter(buf.charAt(cur+4))) {
-                cur = cur+4
-                return NullVal
-              }
-              error("expected null")
-            case ':' =>
-              fieldNameMode = false
-              cur = cur+1
-            case '[' =>
-              blocks.addFirst(ARRAY)
-              cur = cur+1
-              return OpenArr
-            case ']' =>
-              fieldNameMode = true
-              blocks.poll
-              cur = cur+1
-              return CloseArr
-            case c if Character.isDigit(c) || c == '-' =>
-              fieldNameMode = true
-              return parseValue
-            case c if isDelimiter(c) => cur = cur+1
-            case c => error("unknown token " + c)
-          }
+              return StringVal(value)
+            }
+          case 't' =>
+            fieldNameMode = true
+            if (buf.charAt(cur+1) == 'r' && buf.charAt(cur+2) == 'u' && buf.charAt(cur+3) == 'e' && isDelimiter(buf.charAt(cur+4))) {
+              cur = cur+4
+              return BoolVal(true)
+            }
+            error("expected boolean")
+          case 'f' =>
+            fieldNameMode = true
+            if (buf.charAt(cur+1) == 'a' && buf.charAt(cur+2) == 'l' && buf.charAt(cur+3) == 's' && buf.charAt(cur+4) == 'e' && isDelimiter(buf.charAt(cur+5))) {
+              cur = cur+5
+              return BoolVal(false)
+            }
+            error("expected boolean")
+          case 'n' =>
+            fieldNameMode = true
+            if (buf.charAt(cur+1) == 'u' && buf.charAt(cur+2) == 'l' && buf.charAt(cur+3) == 'l' && isDelimiter(buf.charAt(cur+4))) {
+              cur = cur+4
+              return NullVal
+            }
+            error("expected null")
+          case ':' =>
+            fieldNameMode = false
+            cur = cur+1
+          case '[' =>
+            blocks.addFirst(ARRAY)
+            cur = cur+1
+            return OpenArr
+          case ']' =>
+            fieldNameMode = true
+            blocks.poll
+            cur = cur+1
+            return CloseArr
+          case c if Character.isDigit(c) || c == '-' =>
+            fieldNameMode = true
+            return parseValue
+          case c if isDelimiter(c) => cur = cur+1
+          case c => error("unknown token " + c)
         }
-        error("parse error " + buf)
-      } catch {
-        case e: StringIndexOutOfBoundsException => End
       }
+      End
     }
 
     sealed abstract class BlockMode
