@@ -146,6 +146,20 @@ object JsonParser {
     def nextToken: Token = {
       def isDelimiter(c: Char) = c == ' ' || c == '\n' || c == ',' || c == '\r' || c == '\t' || c == '}' || c == ']'
 
+      def parseFieldName: String = {
+        cur = cur+1
+        val start = cur
+        while (true) {
+          var c = buf.charAt(cur)
+          if (c == '"') {
+            cur = cur+1
+            return buf.substring(start, cur-1)
+          }
+          cur = cur+1
+        }
+        error("can't happen")
+      }
+
       def parseString: String = {
         cur = cur+1
         val s = new StringBuilder
@@ -205,11 +219,10 @@ object JsonParser {
             cur = cur+1
             return CloseObj
           case '"' =>
-            val value = parseString
-            if (fieldNameMode && blocks.peek == OBJECT) return FieldStart(value)
+            if (fieldNameMode && blocks.peek == OBJECT) return FieldStart(parseFieldName)
             else {
               fieldNameMode = true
-              return StringVal(value)
+              return StringVal(parseString)
             }
           case 't' =>
             fieldNameMode = true
