@@ -22,11 +22,11 @@ Parsing 50 000 json documents:
 
 Jackson and Literaljson finished parsing in about same time, 200 times faster than standard Scala parser.
 
-So is Literaljson as fast as Jackson? Not (yet :). Jackson wins if the number of parsed 
+So is Literaljson as fast as Jackson? Not quite. Jackson wins if the number of parsed 
 documents is increased to 500 000.
 
 Parsing 500 000 json documents:
 
-    Jackson       4930 ms
-    Literaljson   8711 ms
+    Jackson       4304 ms
+    Literaljson   5803 ms
 
