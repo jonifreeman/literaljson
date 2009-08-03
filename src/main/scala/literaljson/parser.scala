@@ -150,7 +150,7 @@ object JsonParser {
         cur = cur+1
         val start = cur
         while (true) {
-          var c = buf.charAt(cur)
+          val c = buf.charAt(cur)
           if (c == '"') {
             cur = cur+1
             return buf.substring(start, cur-1)

@@ -140,15 +140,14 @@ object JsonAST {
   }
 
   private def quote(s: String) = (s.map { 
-    _ match {
-      case '\r' => "\\r"
-      case '\n' => "\\n"
-      case '\t' => "\\t"
-      case '"'  => "\\\""
-      case '\\' => "\\\\"
-      case c if ((c >= '\u0000' && c < '\u001f') || (c >= '\u0080' && c < '\u00a0') || (c >= '\u2000' && c < '\u2100')) => "\\u%04x".format(c.asInstanceOf[Int])
-      case c => c
-    }}).mkString
+    case '\r' => "\\r"
+    case '\n' => "\\n"
+    case '\t' => "\\t"
+    case '"'  => "\\\""
+    case '\\' => "\\\\"
+    case c if ((c >= '\u0000' && c < '\u001f') || (c >= '\u0080' && c < '\u00a0') || (c >= '\u2000' && c < '\u2100')) => "\\u%04x".format(c.asInstanceOf[Int])
+    case c => c
+  }).mkString
 }
 
 object JsonDSL extends Printer {
