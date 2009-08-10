@@ -12,10 +12,8 @@ object Extraction {
   case class Constructor(classname: String, args: List[Mapping]) extends Mapping
 //  case class ListConstructor(constructors: List[Constructor]) extends Mapping
 
-  // FIXME can this be JValue?
-  def extract[A](obj: JObject)(implicit mf: Manifest[A]) = {
+  def extract[A](json: JValue)(implicit mf: Manifest[A]) = {
     val mapping = memoize(mf.erasure)
-    println(mapping)
 
     def newInstance(classname: String, args: List[Any]) = {
       val clazz = Class.forName(classname)
@@ -27,7 +25,7 @@ object Extraction {
     }
 
     def build(mapping: Mapping, argStack: List[Any]): List[Any] = mapping match {
-      case Value(path) => (path.foldLeft(obj)(_ \\ _)).values.values.next :: argStack // FIXME must use \
+      case Value(path) => (path.foldLeft(json)(_ \ _)).asInstanceOf[JField].value.values :: argStack
       case Constructor(classname, args) => newInstance(classname, args.flatMap(build(_, argStack))) :: Nil
 //      case ListConstructor(classname, args) => List(newInstance(classname, args.flatMap(build(_, argStack))) :: Nil)
     }
