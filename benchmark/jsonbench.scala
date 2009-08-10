@@ -19,7 +19,7 @@ object jsonbench {
 
   def benchmark(name: String)(f: => Any) = {
     println("warmup")
-    (1 to 1000).foreach(i => f)
+    (1 to 50000).foreach(i => f)
     println("warmup done")
     val t = time {
       (1 to 50000).foreach(i => f)
