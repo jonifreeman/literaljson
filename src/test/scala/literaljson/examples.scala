@@ -45,6 +45,22 @@ class ExampleSuite extends FunSuite {
     }
   }
 
+  test("Extraction example") {
+    parse(objArray) match {
+      case Right(objArrayAST) =>
+        expect (objArrayAST.extract[Person]) { Person("joe", Address("Bulevard", "Helsinki"), List(Child("Mary", BigInt(5)), Child("Mazy", BigInt(3)))) }
+      case Left(err) => fail(err.message)
+    }
+  }
+
+  test("Partial extraction example") {
+    parse(objArray) match {
+      case Right(objArrayAST) =>
+        expect (objArrayAST.extract[SimplePerson]) { SimplePerson("joe", Address("Bulevard", "Helsinki")) }
+      case Left(err) => fail(err.message)
+    }
+  }
+
   val lotto = """
 {
   "lotto":{
@@ -92,7 +108,7 @@ class ExampleSuite extends FunSuite {
 """
 { "name": "joe",
   "address": {
-    "street": "kjh",
+    "street": "Bulevard",
     "city": "Helsinki"
   },
   "children": [
@@ -111,3 +127,10 @@ class ExampleSuite extends FunSuite {
   val quoted = """["foo \" \n \t \r bar"]"""
 }
 
+// FIXME extraction does not work if case classes are inner classes
+case class Person(name: String, address: Address, children: List[Child])
+case class Address(street: String, city: String)
+case class Child(name: String, age: BigInt)
+//  case class Child(name: String, age: Int)
+
+case class SimplePerson(name: String, address: Address)

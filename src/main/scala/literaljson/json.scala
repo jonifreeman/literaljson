@@ -72,6 +72,8 @@ object JsonAST {
       }
       filter(this, Nil).reverse
     }
+
+    def extract[A](implicit mf: scala.reflect.Manifest[A]) = Extraction.extract(this)(mf)
   }
 
   case object JNothing extends JValue {
