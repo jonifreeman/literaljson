@@ -65,14 +65,14 @@ object Extraction {
         Constructor(path, clazz.getName, clazz.getDeclaredFields.map { x =>
           if (x.getType == classOf[String]) Value(x.getName)
           else if (x.getType == classOf[BigInt]) Value(x.getName)
-          else if (x.getType == classOf[List[_]]) makeMapping(Some(x.getName), x.getType, true) // x.getType must be Lists type parameter
+          else if (x.getType == classOf[List[_]]) makeMapping(Some(x.getName), Util.parametrizedType(x), true)
           else makeMapping(Some(x.getName), x.getType, false)
         }.toList.reverse)
       case true =>
         ListConstructor(path.get, clazz.getName, clazz.getDeclaredFields.map { x =>
           if (x.getType == classOf[String]) Value(x.getName)
           else if (x.getType == classOf[BigInt]) Value(x.getName)
-          else if (x.getType == classOf[List[_]]) makeMapping(Some(x.getName), x.getType, true)
+          else if (x.getType == classOf[List[_]]) makeMapping(Some(x.getName), Util.parametrizedType(x), true)
           else makeMapping(Some(x.getName), x.getType, false)
         }.toList.reverse)
     }
@@ -81,7 +81,7 @@ object Extraction {
   }
 }
 
-case class Person(name: String, address: Address/*, children: List[Child]*/)
+case class Person(name: String, address: Address, children: List[Child])
 case class Address(street: String, city: String)
 case class Child(name: String, age: BigInt)
 //  case class Child(name: String, age: Int)
