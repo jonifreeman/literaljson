@@ -29,7 +29,6 @@ object Extraction {
 
   def extract[A](json: JValue)(implicit mf: Manifest[A]) = {
     val mapping = memoize(mf.erasure)
-    println(mapping)
 
     def newInstance(classname: String, args: List[Any]) = {
       val clazz = Class.forName(classname)
@@ -61,21 +60,16 @@ object Extraction {
   // FIXME memoize
   private def memoize(clazz: Class[_]) = {
     def makeMapping(path: Option[String], clazz: Class[_], isList: Boolean): Mapping = isList match {
-      case false =>
-        Constructor(path, clazz.getName, clazz.getDeclaredFields.map { x =>
-          if (x.getType == classOf[String]) Value(x.getName)
-          else if (x.getType == classOf[BigInt]) Value(x.getName)
-          else if (x.getType == classOf[List[_]]) makeMapping(Some(x.getName), Util.parametrizedType(x), true)
-          else makeMapping(Some(x.getName), x.getType, false)
-        }.toList.reverse)
-      case true =>
-        ListConstructor(path.get, clazz.getName, clazz.getDeclaredFields.map { x =>
-          if (x.getType == classOf[String]) Value(x.getName)
-          else if (x.getType == classOf[BigInt]) Value(x.getName)
-          else if (x.getType == classOf[List[_]]) makeMapping(Some(x.getName), Util.parametrizedType(x), true)
-          else makeMapping(Some(x.getName), x.getType, false)
-        }.toList.reverse)
+      case false => Constructor(path, clazz.getName, constructorArgs(clazz))
+      case true  => ListConstructor(path.get, clazz.getName, constructorArgs(clazz))
     }
+
+    def constructorArgs(clazz: Class[_]) = clazz.getDeclaredFields.map { x =>
+      if (x.getType == classOf[String]) Value(x.getName)
+      else if (x.getType == classOf[BigInt]) Value(x.getName)
+      else if (x.getType == classOf[List[_]]) makeMapping(Some(x.getName), Util.parametrizedType(x), true)
+      else makeMapping(Some(x.getName), x.getType, false)
+    }.toList.reverse // FIXME Java6 returns these in reverse order, verify that and check other vms
     
     makeMapping(None, clazz, false)
   }
