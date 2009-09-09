@@ -1,11 +1,11 @@
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! 
-! NOTE: the development of Literaljson continues as a lift-json module:
-!
-! See lift-json @
-! http://github.com/dpp/liftweb/tree/master
-!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
+!    
+! NOTE: the development of Literaljson continues as a lift-json module:    
+!    
+! See lift-json @    
+! http://github.com/dpp/liftweb/tree/master    
+!    
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    
 
 Literaljson: parsing and formatting utilities for JSON.
 
