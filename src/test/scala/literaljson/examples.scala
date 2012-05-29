@@ -78,7 +78,7 @@ class ExampleSuite extends FunSuite {
 """
 
   val person = """
-{ 
+{
   "person": {
     "name": "Joe",
     "age": 35,
@@ -92,19 +92,19 @@ class ExampleSuite extends FunSuite {
 }
 """
 
-  val personDSL = 
+  val personDSL =
     ("person" ->
       ("name" -> "Joe") ~
       ("age" -> 35) ~
-      ("spouse" -> 
-        ("person" -> 
+      ("spouse" ->
+        ("person" ->
           ("name" -> "Marilyn") ~
           ("age" -> 33)
         )
       )
     )
 
-  val objArray = 
+  val objArray =
 """
 { "name": "joe",
   "address": {

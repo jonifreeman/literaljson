@@ -125,7 +125,7 @@ object JsonAST {
     case JString(s)   => text("\"" + quote(s) + "\"")
     case JArray(arr)  => text("[") :: series(trimArr(arr).map(render(_))) :: text("]")
     case JField(n, v) => text("\"" + n + "\":") :: render(v)
-    case JObject(obj) => 
+    case JObject(obj) =>
       val nested = break :: fields(trimObj(obj).map(f => text("\"" + f.name + "\":") :: render(f.value)))
       text("{") :: nest(2, nested) :: break :: text("}")
   }
@@ -141,7 +141,7 @@ object JsonAST {
     case d :: ds => (d :: p) :: punctuate(p, ds)
   }
 
-  private def quote(s: String) = (s.map { 
+  private def quote(s: String) = (s.map {
     case '\r' => "\\r"
     case '\n' => "\\n"
     case '\t' => "\\t"
@@ -197,7 +197,7 @@ trait Printer {
 
   def compact(d: Document) = {
     def layout(doc: Document): String = doc match {
-      case DocText(s)      => s 
+      case DocText(s)      => s
       case DocCons(d1, d2) => layout(d1) + layout(d2)
       case DocBreak        => ""
       case DocNest(_, d)   => layout(d)

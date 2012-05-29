@@ -8,7 +8,7 @@ import JsonAST._
 trait JValueGen {
   def genJValue: Gen[JValue] = frequency((5, genSimple), (1, lzy(genArray)), (1, lzy(genObject)))
   def genSimple: Gen[JValue] = oneOf(
-    value(JNull), 
+    value(JNull),
     arbitrary[Int].map(JInt(_)),
     arbitrary[Double].map(JDouble(_)),
     arbitrary[Boolean].map(JBool(_)),

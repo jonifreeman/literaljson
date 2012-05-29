@@ -60,8 +60,8 @@ object JsonParser {
   case class MArray() extends MValue with MBlock[MValue] {
     def toJValue = JArray(elems.map(_.toJValue).reverse)
   }
-  
-  def parse(s: String): Either[ParseError, JValue] = 
+
+  def parse(s: String): Either[ParseError, JValue] =
     try {
       Right(parse0(s))
     } catch {
@@ -76,7 +76,7 @@ object JsonParser {
 
     def closeBlock(v: MValue) {
       vals.peekOption match {
-        case Some(f: MField) => 
+        case Some(f: MField) =>
           f.value = v
           val field = vals.pop[MField]
           vals.peek[MObject] += field
@@ -107,7 +107,7 @@ object JsonParser {
         case DoubleVal(x)     => newValue(MDouble(x))
         case BoolVal(x)       => newValue(MBool(x))
         case NullVal          => newValue(MNull)
-        case CloseObj         => closeBlock(vals.pop[MValue])          
+        case CloseObj         => closeBlock(vals.pop[MValue])
         case OpenArr          => vals.push(MArray())
         case CloseArr         => closeBlock(vals.pop[MArray])
         case End              =>

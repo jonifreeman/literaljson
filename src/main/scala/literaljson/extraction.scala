@@ -1,4 +1,4 @@
-package literaljson 
+package literaljson
 
 import scala.reflect.Manifest
 import JsonAST._
@@ -14,7 +14,7 @@ object Extraction {
    *
    *  Example mapping.
    *
-   *  package xx 
+   *  package xx
    *  case class Person(name: String, address: Address, children: List[Child])
    *  case class Address(street: String, city: String)
    *  case class Child(name: String, age: BigInt)
@@ -46,13 +46,13 @@ object Extraction {
 
     def build(root: JValue, mapping: Mapping, argStack: List[Any]): List[Any] = mapping match {
       case Value(path) => fieldValue(root, path).values :: argStack
-      case Constructor(path, classname, args) => 
+      case Constructor(path, classname, args) =>
         val newRoot = path match {
           case Some(p) => root \ p
           case None => root
         }
         newInstance(classname, args.flatMap(build(newRoot, _, argStack))) :: Nil
-      case ListConstructor(path, classname, args) => 
+      case ListConstructor(path, classname, args) =>
         val arr = fieldValue(root, path).asInstanceOf[JArray]
         arr.arr.map(elem => newInstance(classname, args.flatMap(build(elem, _, argStack)))) :: argStack
     }
@@ -76,7 +76,7 @@ object Extraction {
       else if (x.getType == classOf[List[_]]) makeMapping(Some(x.getName), Util.parametrizedType(x), true)
       else makeMapping(Some(x.getName), x.getType, false)
     }.toList.reverse // FIXME Java6 returns these in reverse order, verify that and check other vms
-    
+
     makeMapping(None, clazz, false)
   }
 }
